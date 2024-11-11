@@ -72,16 +72,19 @@
 
           in
           pkgs.mkShell {
-            packages = [
+            packages = with pkgs; [
               virtualenv
-              pkgs.uv
-              pkgs.python312Packages.python-lsp-server
+              uv
+              python312Packages.python-lsp-server
+              nodejs
+              nodePackages.typescript
+              nodePackages.typescript-language-server
             ];
             shellHook = ''
               # Undo dependency propagation by nixpkgs.
               unset PYTHONPATH
               # Get repository root using git. This is expanded at runtime by the editable `.pth` machinery.
-              export REPO_ROOT=$(git rev-parse --show-toplevel)
+              export REPO_ROOT=$(git rev-parse --show-toplevel)/api
             '';
           };
       };
