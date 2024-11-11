@@ -1,0 +1,24 @@
+[project]
+name = "web-development-project"
+version = "0.1.0"
+description = "Web development project for coursework in 'Fundamentals of Web Engineering'"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.0.3",
+]
+
+[dependency-groups]
+dev = [
+]
+
+# this is only for demonstrating how to deploy something as an executable, which is not relevant for development right now
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+hello = "hello_world:hello"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hello_world"]
