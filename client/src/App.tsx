@@ -4,7 +4,7 @@ import './App.css';
 import { useQuery } from '@tanstack/react-query';
 import { fetchHelloWorld } from './api';
 
-function App() {
+const App = () => {
   const {status, data, error} = useQuery({queryKey: ["helloWorld"], queryFn: fetchHelloWorld})
   return (
     <div className="App">
@@ -13,7 +13,11 @@ function App() {
 
         <h3>Let's see if server's '/' endpoint responds here:</h3>
 
-        <p>{data}</p>
+        <p>{
+          status == "pending" ? "loading..."
+            : status == "success" ? data
+            : `Couldn't fetch hello world: ${error}`
+        }</p>
 
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
