@@ -2,6 +2,7 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 import { useQuery } from '@tanstack/react-query';
+import { fetchHelloWorld } from './api';
 
 function App() {
   const {status, data, error} = useQuery({queryKey: ["helloWorld"], queryFn: fetchHelloWorld})
