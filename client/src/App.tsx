@@ -1,37 +1,35 @@
-import React from 'react';
-import logo from './logo.svg';
+// import logo from './logo.svg';
 import './App.css';
-import { useQuery } from '@tanstack/react-query';
-import { fetchHelloWorld } from './api';
+// import { useQuery } from '@tanstack/react-query';
+// import { fetchHelloWorld } from './api';
+import { createContext, Dispatch, SetStateAction, useState } from 'react';
+import { Dashboard } from "./components/Dashboard";
+
+const initStock = {
+  stockSymbol: "AAPL",
+  setStockSymbol: (() => {throw new Error("wont happen")}) as Dispatch<SetStateAction<string>>
+}
+
+export const StockContext = createContext(initStock);
+
+const initTheme = {
+  darkMode: false,
+  setDarkMode: (() => {throw new Error("wont happen")}) as Dispatch<SetStateAction<boolean>>
+}
+
+export const ThemeContext = createContext(initTheme);
 
 const App = () => {
-  const {status, data, error} = useQuery({queryKey: ["helloWorld"], queryFn: fetchHelloWorld})
+  // const {status, data, error} = useQuery({queryKey: ["helloWorld"], queryFn: fetchHelloWorld})
+
+  const [darkMode, setDarkMode] = useState(false);
+  const [stockSymbol, setStockSymbol] = useState("AAPL");
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-
-        <h3>Let's see if server's '/' endpoint responds here:</h3>
-
-        <p>{
-          status == "pending" ? "loading..."
-            : status == "success" ? data
-            : `Couldn't fetch hello world: ${error}`
-        }</p>
-
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ThemeContext.Provider value={{ darkMode, setDarkMode}}>
+      <StockContext.Provider value={{ stockSymbol, setStockSymbol }}>
+        <Dashboard />
+      </StockContext.Provider>
+    </ThemeContext.Provider>
   );
 }
 
