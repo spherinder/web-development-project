@@ -127,7 +127,8 @@ export const Chart = () => {
           <Area
             type={curveCardinal.tension(0.6)}
             dataKey="value"
-            stroke="#312e81"
+            // stroke="#312e81"
+            stroke={darkMode ? "#b18ee1" : "#312e81"}
             fill="url(#chartColor)"
             fillOpacity={1}
             strokeWidth={0.5}
