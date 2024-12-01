@@ -2,14 +2,30 @@
 
 ## Server
 
-Install Flask and start the API server using `flask --app api/src run`
+Create a virtual environment
 
-### Reproducible approach
+```
+python3 -m venv .venv
+source .venv/bin/activate
+```
 
-Install the python project manager [uv](https://docs.astral.sh/uv/getting-started/installation/)
+Install dependencies
 
-Start the API server using `uv run -- flask --app api/src run`
+```
+pip install -r requirements.txt
+```
 
+Run database migrations
+
+```
+flask db upgrade
+```
+
+Run application
+
+```
+flask run
+```
 
 ## Client
 Install packages: `cd client && npm i`
