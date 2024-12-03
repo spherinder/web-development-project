@@ -113,3 +113,38 @@ export const doTransaction = async (
   }
 
 }
+
+export const register = async (username: string, email: string, password: string) => {
+
+}
+
+export const login = async (username: string, password: string) => {
+  const url = `${serverUrl}/auth/login`;
+  console.log("logging in");
+
+  const response = await fetch(url, {
+    method: "POST",
+    mode: "cors",
+    credentials: 'include',
+
+    body: JSON.stringify({
+      username: username,
+      password: password,
+    }),
+    headers: {
+      "Content-type": "application/json; charset=UTF-8"
+    }
+  })
+
+  if (!response.ok) {
+    throw new Error(`Error when logging in: ${response.status}`);
+  }
+
+  const data = await response.json();
+  if (data) {
+    const apiToken = data["data"]["api_key"];
+    return apiToken
+  }
+
+
+}
