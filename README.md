@@ -1,6 +1,6 @@
 # Web development project
 
-## Server
+## Run server
 
 Create a virtual environment
 
@@ -25,6 +25,16 @@ Run application
 
 ```
 flask run
+```
+
+This will serve on port 4000 by default.
+
+## Run server tests
+
+From inside the virtual environment, run
+
+```
+python tests.py
 ```
 
 ## Client
