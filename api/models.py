@@ -71,3 +71,8 @@ class UserBalance(db.Model):
     timestamp: so.Mapped[datetime.datetime] = so.mapped_column(
         index=True, default=lambda: datetime.now(datetime.timezone.utc)
     )
+
+    def as_dict(self):
+        return {
+            c.key: getattr(self, c.key) for c in sa.inspect(self).mapper.column_attrs
+        }
