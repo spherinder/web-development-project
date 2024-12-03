@@ -7,8 +7,29 @@ from api.models import (
     UserBalance,
 )
 from api.api_key import require_api_key
+import math
 
 market_blueprint = Blueprint("market", __name__, url_prefix="/market")
+
+
+@market_blueprint.post("/create")
+@require_api_key
+def create_market():
+    user: User = g.user
+    if not user.is_superuser:
+        return {
+            "status": "err",
+            "msg": "Only super users can create markets",
+            "data": None,
+        }, 403
+    body = request.get_json()
+    market_name = body["name"]
+    market_description = body["description"]
+    market = PredictionMarket(name=market_name, description=market_description)
+    db.session.add(market)
+    db.session.commit()
+
+    return {"status": "ok", "msg": "Created that market", "data": market}
 
 
 def purchase(is_yes: bool, dollar_amount, market: PredictionMarket, user: User):
@@ -30,19 +51,21 @@ def purchase(is_yes: bool, dollar_amount, market: PredictionMarket, user: User):
     )
 
     product = liquidity.no_balance * liquidity.yes_balance
-    buy_liquidity, sell_liquidity = (liquidity.yes_balance, liquidity.no_balance) if is_yes else (liquidity.no_balance, liquidity.yes_balance)
-    delta = buy_liquidity - product / (
-        sell_liquidity + dollar_amount
+    buy_liquidity, sell_liquidity = (
+        (liquidity.yes_balance, liquidity.no_balance)
+        if is_yes
+        else (liquidity.no_balance, liquidity.yes_balance)
     )
-    buy_key, sell_key = ("yes_balance", "no_balance") if is_yes else ("no_balance", "yes_balance")
+    delta = buy_liquidity - product / (sell_liquidity + dollar_amount)
+    buy_key, sell_key = (
+        ("yes_balance", "no_balance") if is_yes else ("no_balance", "yes_balance")
+    )
 
     # when we create the market we create an initial balance
     new_liquidity = MarketLiquidity(
         market_id=market.id,
-        **{
-            buy_key: buy_liquidity - delta,
-            sell_key: sell_liquidity + dollar_amount
-        })
+        **{buy_key: buy_liquidity - delta, sell_key: sell_liquidity + dollar_amount}
+    )
 
     db.session.add(new_liquidity)
 
@@ -74,6 +97,7 @@ def purchase(is_yes: bool, dollar_amount, market: PredictionMarket, user: User):
 
     db.session.commit()
 
+
 def sell(is_yes: bool, token_amount, market: PredictionMarket, user: User):
     """
     Suppose is_yes is true. Part of token_amount in ¥ must be converted into ₦, such that
@@ -95,8 +119,14 @@ def sell(is_yes: bool, token_amount, market: PredictionMarket, user: User):
     # TODO: check that the user has more than token_amount of token
     # TODO: assert market balance doesn't go negative (it shouldn't)
 
-    sell_key, buy_key = ("yes_balance", "no_balance") if is_yes else ("no_balance", "yes_balance")
-    sell_liquidity, buy_liquidity = (liquidity.yes_balance, liquidity.no_balance) if is_yes else (liquidity.no_balance, liquidity.yes_balance)
+    sell_key, buy_key = (
+        ("yes_balance", "no_balance") if is_yes else ("no_balance", "yes_balance")
+    )
+    sell_liquidity, buy_liquidity = (
+        (liquidity.yes_balance, liquidity.no_balance)
+        if is_yes
+        else (liquidity.no_balance, liquidity.yes_balance)
+    )
 
     liquidity: MarketLiquidity = (
         MarketLiquidity.query.filter(MarketLiquidity.market_id == market.id)
@@ -105,11 +135,9 @@ def sell(is_yes: bool, token_amount, market: PredictionMarket, user: User):
     )
 
     sigma = liquidity.no_balance + liquidity.yes_balance
-    convert_amount = (token_amount - sigma)/2
-      + math.sqrt(
-          (token_amount - sigma)**2 / 4
-          + sell_liquidity * token_amount
-      )
+    convert_amount = (token_amount - sigma) / 2 + math.sqrt(
+        (token_amount - sigma) ** 2 / 4 + sell_liquidity * token_amount
+    )
     delta = token_amount - convert_amount
 
     dog_balance = (
@@ -129,10 +157,8 @@ def sell(is_yes: bool, token_amount, market: PredictionMarket, user: User):
     # when we create the market we create an initial balance
     new_liquidity = MarketLiquidity(
         market_id=market.id,
-        **{
-            buy_key: buy_liquidity + convert_amount,
-            sell_key: sell_liquidity - delta
-        })
+        **{buy_key: buy_liquidity + convert_amount, sell_key: sell_liquidity - delta}
+    )
 
     db.session.add(new_liquidity)
 

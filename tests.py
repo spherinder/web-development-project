@@ -54,6 +54,28 @@ class UserModelCase(unittest.TestCase):
         res_data = json.loads(response.data)
         self.assertEqual(res_data["data"]["api_key"], user.api_key)
 
+        # now test to ensure requests sent to protected routes with missing API
+        # keys are rejecte
+        response = self.client.post(
+            "/market/create",
+            data=json.dumps({}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+
+        response = self.client.post(
+            "/market/create",
+            data=json.dumps(
+                {
+                    "name": "Will more than 30 people get a 6.0 in DM?",
+                    "description": "Resolves on DATE",
+                }
+            ),
+            headers={"x-api-key": "aninvalidapikey"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 403)
+
 
 class TestMarket(unittest.TestCase):
     def setUp(self):
