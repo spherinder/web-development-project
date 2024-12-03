@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import datetime
 from typing import Optional
 import sqlalchemy as sa
@@ -14,6 +15,18 @@ class User(db.Model):
     api_key: so.Mapped[str] = so.mapped_column(sa.String(256))
     is_superuser: so.Mapped[bool] = so.mapped_column(sa.Boolean)
 
+    def as_dict(self):
+        """
+        Returns data that the user can see about other users.
+        """
+        return {"id": self.id, "username": self.username}
+
+    def as_dict_self(self):
+        """
+        Returns data that the user can see about themself.
+        """
+        return {"email": self.email, **self.as_dict()}
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -24,12 +37,13 @@ class User(db.Model):
         return "<User {}>".format(self.username)
 
 
+@dataclass
 class PredictionMarket(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     name: so.Mapped[str] = so.mapped_column(sa.String(256), nullable=False)
     description: so.Mapped[str] = so.mapped_column(sa.String(1025), nullable=False)
     created_at: so.Mapped[datetime.datetime] = so.mapped_column(
-        index=True, default=lambda: datetime.now(datetime.timezone.utc)
+        index=True, default=lambda: datetime.datetime.now(datetime.timezone.utc)
     )
 
 

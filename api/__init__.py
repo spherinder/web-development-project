@@ -18,6 +18,9 @@ def create_app(config_class=Config):
     from api.market import market_blueprint
 
     app.register_blueprint(market_blueprint)
+    from api.user import user_blueprint
+
+    app.register_blueprint(user_blueprint)
     return app
 
 
