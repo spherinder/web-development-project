@@ -13,47 +13,36 @@ market_blueprint = Blueprint("market", __name__, url_prefix="/market")
 
 def purchase(is_yes: bool, dollar_amount, market: PredictionMarket, user: User):
     # TODO: check that the user has enough money
-    prev_liquidity = (
+    liquidity: MarketLiquidity = (
         MarketLiquidity.query.filter(MarketLiquidity.market_id == market.id)
         .order_by(MarketLiquidity.timestamp.desc())
         .first_or_404()
     )
 
-    product = prev_liquidity.no_balance * prev_liquidity.yes_balance
-    if is_yes:
-        delta = prev_liquidity.yes_balance - product / (
-            prev_liquidity.no_balance + dollar_amount
-        )
+    product = liquidity.no_balance * liquidity.yes_balance
+    buy_liquidity, sell_liquidity = (liquidity.yes_balance, liquidity.no_balance) if is_yes else (liquidity.no_balance, liquidity.yes_balance)
+    delta = buy_liquidity - product / (
+        sell_liquidity + dollar_amount
+    )
+    buy_key, sell_key = ("yes_balance", "no_balance") if is_yes else ("no_balance", "yes_balance")
 
-    else:
-        delta = prev_liquidity.no_balance - product / (
-            prev_liquidity.yes_balance + dollar_amount
-        )
+    # when we create the market we create an initial balance
+    new_liquidity = MarketLiquidity(
+        market_id=market.id,
+        **{
+            buy_key: buy_liquidity - delta,
+            sell_key: sell_liquidity + dollar_amount
+        })
 
-    if is_yes:
-        # when we create the market we create an initial balance
-        liquidity = MarketLiquidity(
-            market_id=market.id,
-            yes_balance=prev_liquidity.yes_balance - delta,
-            no_balance=prev_liquidity.no_balance + dollar_amount,
-        )
-    else:
-        # when we create the market we create an initial balance
-        liquidity = MarketLiquidity(
-            market_id=market.id,
-            yes_balance=prev_liquidity.yes_balance + dollar_amount,
-            no_balance=prev_liquidity.no_balance - delta,
-        )
+    db.session.add(new_liquidity)
 
-    db.session.add(liquidity)
-
-    user_dog_balance = (
+    dog_balance = (
         UserBalance.query.filter(UserBalance.user_id == user.id)
         .order_by(UserBalance.timestamp.desc())
         .first_or_404()
     ).dog_balance
 
-    prev_user_balance: UserBalance = (
+    tok_balance: UserBalance = (
         UserBalance.query.filter(
             UserBalance.user_id == user.id and MarketLiquidity.market_id == market.id
         )
@@ -61,26 +50,86 @@ def purchase(is_yes: bool, dollar_amount, market: PredictionMarket, user: User):
         .first_or_404()
     )
 
-    if is_yes:
-        new_balance = UserBalance(
-            user_id=user.id,
-            market_id=market.id,
-            dollar_amount=user_dog_balance - dollar_amount,
-            yes_balance=prev_user_balance.yes_balance + dollar_amount + delta,
-            no_balance=prev_user_balance.no_balance,
-        )
-    else:
-        new_balance = UserBalance(
-            user_id=user.id,
-            market_id=market.id,
-            dollar_amount=user_dog_balance - dollar_amount,
-            yes_balance=prev_user_balance.yes_balance,
-            no_balance=prev_user_balance.no_balance + dollar_amount + delta,
-        )
+    new_balance = UserBalance(
+        user_id=user.id,
+        market_id=market.id,
+        dollar_amount=user_dog_balance - dollar_amount,
+        **{
+            buy_key: buy_balance + dollar_amount + delta,
+            sell_key: sell_balance
+        }
+    )
 
     db.session.add(new_balance)
 
     db.session.commit()
+
+# def sell(is_yes: bool, token_amount, market: PredictionMarket, user: User):
+#     # TODO: check that the user has enough money
+#     liquidity: MarketLiquidity = (
+#         MarketLiquidity.query.filter(MarketLiquidity.market_id == market.id)
+#         .order_by(MarketLiquidity.timestamp.desc())
+#         .first_or_404()
+#     )
+
+#     dog_balance = (
+#         UserBalance.query.filter(UserBalance.user_id == user.id)
+#         .order_by(UserBalance.timestamp.desc())
+#         .first_or_404()
+#     ).dog_balance
+
+#     tok_balance: UserBalance = (
+#         UserBalance.query.filter(
+#             UserBalance.user_id == user.id and MarketLiquidity.market_id == market.id
+#         )
+#         .order_by(UserBalance.timestamp.desc())
+#         .first_or_404()
+#     )
+
+#     if tok_balance.yes_balance >= token_amount and tok_balance.no_balance >= token_amount:
+#         new_balance = UserBalance(
+#             user_id=user.id,
+#             market_id=market.id,
+#             dollar_amount=user_dog_balance + token_amount,
+#             yes_balance = tok_balance.yes_balance - token_amount,
+#             yes_balance = tok_balance.yes_balance - token_amount,
+#         )
+#         db.session.add(new_balance)
+#         db.session.commit()
+#         return
+
+#     sell_key, buy_key = ("yes_balance", "no_balance") if is_yes else ("no_balance", "yes_balance")
+
+#     product = liquidity.no_balance * liquidity.yes_balance
+#     buy_liquidity, sell_liquidity = (liquidity.yes_balance, liquidity.no_balance) if is_yes else (liquidity.no_balance, liquidity.yes_balance)
+#     delta = buy_liquidity - product / (
+#         sell_liquidity + dollar_amount
+#     )
+
+#     # when we create the market we create an initial balance
+#     new_liquidity = MarketLiquidity(
+#         market_id=market.id,
+#         **{
+#             buy_key: buy_liquidity - delta,
+#             sell_key: sell_liquidity + dollar_amount
+#         })
+
+#     db.session.add(new_liquidity)
+
+
+#     new_balance = UserBalance(
+#         user_id=user.id,
+#         market_id=market.id,
+#         dollar_amount=user_dog_balance - dollar_amount,
+#         **{
+#             buy_key: buy_balance + dollar_amount + delta,
+#             sell_key: sell_balance
+#         }
+#     )
+
+#     db.session.add(new_balance)
+
+#     db.session.commit()
 
 
 @market_blueprint.post("/<market_id>/tx")
