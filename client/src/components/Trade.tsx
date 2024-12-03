@@ -1,14 +1,23 @@
-import { createContext, PropsWithChildren, useContext, useEffect, useState } from "react";
-import {ThemeContext, StockContext} from "../App";
+import { Dispatch, SetStateAction, createContext, PropsWithChildren, useContext, useEffect, useState } from "react";
+import {ThemeContext, StockContext, AuthContext} from "../App";
 import { Card } from "./Card";
 import { useQuery } from "@tanstack/react-query";
+import { transactionType, tokenType, doTransaction } from "../api";
+
+const initTransactionType = {
+  transactionType: "buy" as transactionType,
+  setTransactionType: (() => {throw new Error("wont happen")}) as Dispatch<SetStateAction<transactionType>>,
+}
+
+export const TransactionContext = createContext(initTransactionType);
 
 export const Trade = () => {
   const [tradeAmount, setTradeAmount] = useState(0);
-  const [selectedButton, setSelectedButton] = useState<buttonType>("yes");
+  const [tokenType, setTokenType] = useState<tokenType>("yes");
+  const [transactionType, setTransactionType] = useState<transactionType>("buy");
 
-  const updateSelectedButton = (newButton: buttonType) => {
-    setSelectedButton(_ =>  newButton);
+  const updateSelectedButton = (newButton: tokenType) => {
+    setTokenType(_ =>  newButton);
   }
 
   const updateAmount = (type: updateType) => {
@@ -19,9 +28,10 @@ export const Trade = () => {
     }
   }
 
-  
+
   return (
     <Card>
+      <TransactionContext.Provider value={{ transactionType, setTransactionType }}>
       <div style={{
         fontSize: "22px",
         display: "flex",
@@ -33,18 +43,47 @@ export const Trade = () => {
         // flexWrap: "nowrap",
 
       }}>
-        <Buttons getSelectedButton={() => selectedButton} updateSelectedButton={updateSelectedButton}/>
+        <Header/>
+        <Buttons getSelectedButton={() => tokenType} updateSelectedButton={updateSelectedButton}/>
         <Amount getAmount={() => tradeAmount} updateAmount={updateAmount}/>
-        <Execute buttonType={selectedButton} tradeAmount={tradeAmount}/>
+        <Execute tokenType={tokenType} tradeAmount={tradeAmount}/>
       </div>
+      </TransactionContext.Provider>
     </Card>
   )
-
 }
 
-type buttonType = "yes" | "no"
-type updateType = "add" | "subtract"
+const Header = () => {
 
+  return (
+    <div style={{
+      display: "flex",
+      justifyContent: "space-evenly",
+    }}>
+      <HeaderButton type="buy"/>
+      <HeaderButton type="sell"/>
+    </div>
+  )
+}
+
+const HeaderButton = ({type}: {type: transactionType}) => {
+  const { transactionType, setTransactionType } = useContext(TransactionContext);
+
+  const capitalize = (str: string): string => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  return (
+      <button onClick={() => setTransactionType(type)}
+        style={{
+          color: transactionType === type ? "#2D9CDB" : "#000000"
+        }}>
+        {capitalize(type)}
+      </button>
+  )
+}
+
+type updateType = "add" | "subtract"
 
 const Buttons = ({getSelectedButton, updateSelectedButton}: {
   getSelectedButton: Function,
@@ -63,16 +102,16 @@ const Buttons = ({getSelectedButton, updateSelectedButton}: {
       }}>
 
         <Button type="yes" selectedButton={() => getSelectedButton()}
-              onClick={(newButton: buttonType) => updateSelectedButton(newButton)}/>
+              onClick={(newButton: tokenType) => updateSelectedButton(newButton)}/>
         <Button type="no" selectedButton={() => getSelectedButton()}
-              onClick={(newButton: buttonType) => updateSelectedButton(newButton)}/>
+              onClick={(newButton: tokenType) => updateSelectedButton(newButton)}/>
           </div>
         </div>
 
   )
 }
 const Button = ({type, selectedButton, onClick}: {
-  type: buttonType,
+  type: tokenType,
   selectedButton: Function,
   onClick: Function
 }) => {
@@ -94,22 +133,24 @@ const Button = ({type, selectedButton, onClick}: {
 }
 
 const Amount = ({getAmount, updateAmount}: {getAmount: Function, updateAmount: Function}) => {
+  const { transactionType } = useContext(TransactionContext);
+
   const amountButtonStyle = {
     padding: "8px",
     width: "28px",
     height: "28px",
     backgroundColor: "#b3b3b3",
   };
-  
+
   return (
 
     <div style={{
       // padding: "10px",
       display: "flex",
       flexDirection: "column",
-      
+
     }}>
-  Amount
+      {transactionType === "buy" ? "Amount" : "Shares"}
       <div className="amount" style={{
         display: "flex",
         justifyContent: "space-evenly"
@@ -125,12 +166,13 @@ const Amount = ({getAmount, updateAmount}: {getAmount: Function, updateAmount: F
       </button>
 
       <input inputMode="decimal" pattern="[0-9]*"
-        placeholder="0Ð" className="amount-input" value={`Ð${getAmount()}`}
+        placeholder="0Ð" className="amount-input"
+        value={`${transactionType === "buy" ? "Ð" : ""}${getAmount()}`}
         style={{
           borderColor: "black",
           textAlign: "center",
         }}/>
-      
+
       <button aria-hidden="true" className="amount-button"
         onClick={() => updateAmount("add")}
       style={amountButtonStyle}>
@@ -144,28 +186,47 @@ const Amount = ({getAmount, updateAmount}: {getAmount: Function, updateAmount: F
   )
 }
 
-const Execute = ({buttonType, tradeAmount}: {buttonType: buttonType, tradeAmount: number}) => {
-  return (
-    <center>
-      <button onClick={() => executeTransaction(buttonType, tradeAmount)}
-        style={{
-        width: "250px",
-        height: "50px",
-        textAlign: "center",
-        backgroundColor: "#2D9CDB",
+const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: number}) => {
+  const { apiToken } = useContext(AuthContext);
+  const { transactionType } = useContext(TransactionContext);
 
-      }}>
-        Execute Transaction
-      </button>
-    </center>
+  const buttonStyle = {
+    width: "250px",
+    height: "50px",
+    // See https://stackoverflow.com/questions/43121661/typescript-type-inference-issue-with-string-literal
+    textAlign: "center" as const,
+    backgroundColor: "#2D9CDB",
+  };
+
+  if (apiToken) {
+    return (
+      <center>
+        <button onClick={() => executeTransaction(transactionType, tokenType, tradeAmount, apiToken)}
+          style={buttonStyle}>
+          Execute Transaction
+        </button>
+      </center>
+    )
+  }
+  return (
+      <center>
+        <button // onClick={login}
+          style={buttonStyle}>
+          Login
+        </button>
+      </center>
   )
 }
 
-
-
-const executeTransaction = (type: buttonType, amount: number) => {
+const executeTransaction = (
+  kind: transactionType,
+  type: tokenType,
+  amount: number,
+  apiToken: string
+) => {
   console.log("executing transaction")
   if (amount === 0) {
     alert("You have specified an amount of 0")
   }
+
 }
