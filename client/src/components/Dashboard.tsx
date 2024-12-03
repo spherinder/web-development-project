@@ -5,6 +5,8 @@ import { fetchQuote, fetchStockDetails } from "../api";
 import { Header } from "./Header";
 import { Quote, StockDetails } from "../model";
 import { useQuery } from "@tanstack/react-query";
+import { Trade } from "./Trade";
+import { Card } from "./Card";
 
 type DetailsList = {
   name: string,
@@ -54,19 +56,6 @@ const Details = ({ details }: {details: StockDetails | null}) => {
         }) : (<></>)}
       </ul>
     </Card>
-  );
-};
-
-export const Card: FC<PropsWithChildren> = ({ children }) => {
-  const { darkMode } = useContext(ThemeContext);
-  return (
-    <div
-      className={`w-full h-full rounded-md relative p-8 border-2 ${
-        darkMode ? "bg-gray-900 border-gray-800" : "bg-white border-neutral-200"
-      }`}
-    >
-      {children}
-    </div>
   );
 };
 
@@ -140,7 +129,8 @@ export const Dashboard = () => {
         />
       </div>
       <div className="row-span-2 xl:row-span-3">
-        <Details details={detailStatus === "success" ? stockDetails : null} />
+        <Trade/>
+        { /* // <Details details={detailStatus === "success" ? stockDetails : null} /> */ }
       </div>
     </div>
   );
