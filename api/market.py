@@ -11,6 +11,26 @@ from api.api_key import require_api_key
 market_blueprint = Blueprint("market", __name__, url_prefix="/market")
 
 
+@market_blueprint.post("/create")
+@require_api_key
+def create_market():
+    user: User = g.user
+    if not user.is_superuser:
+        return {
+            "status": "err",
+            "msg": "Only super users can create markets",
+            "data": None,
+        }
+    body = request.get_json()
+    market_name = body["name"]
+    market_description = body["description"]
+    market = PredictionMarket(name=market_name, description=market_description)
+    db.session.add(market)
+    db.session.commit()
+
+    return {"status": "ok", "msg": "Created that market", "data": market}
+
+
 def purchase(is_yes: bool, dollar_amount, market: PredictionMarket, user: User):
     # TODO: check that the user has enough money
     prev_liquidity = (

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import datetime
 from typing import Optional
 import sqlalchemy as sa
@@ -24,12 +25,13 @@ class User(db.Model):
         return "<User {}>".format(self.username)
 
 
+@dataclass
 class PredictionMarket(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     name: so.Mapped[str] = so.mapped_column(sa.String(256), nullable=False)
     description: so.Mapped[str] = so.mapped_column(sa.String(1025), nullable=False)
     created_at: so.Mapped[datetime.datetime] = so.mapped_column(
-        index=True, default=lambda: datetime.now(datetime.timezone.utc)
+        index=True, default=lambda: datetime.datetime.now(datetime.timezone.utc)
     )
 
 

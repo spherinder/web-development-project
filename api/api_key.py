@@ -25,6 +25,6 @@ def require_api_key(view_function, header_name="x-api-key"):
             }
         else:
             g.user = user
-            view_function(*args, **kwargs)
+            return view_function(*args, **kwargs)
 
     return decorated_function
