@@ -15,6 +15,18 @@ class User(db.Model):
     api_key: so.Mapped[str] = so.mapped_column(sa.String(256))
     is_superuser: so.Mapped[bool] = so.mapped_column(sa.Boolean)
 
+    def as_dict(self):
+        """
+        Returns data that the user can see about other users.
+        """
+        return {"id": self.id, "username": self.username}
+
+    def as_dict_self(self):
+        """
+        Returns data that the user can see about themself.
+        """
+        return {"email": self.email, **self.as_dict()}
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 

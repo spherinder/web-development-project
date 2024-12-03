@@ -87,9 +87,7 @@ class TestMarket(unittest.TestCase):
                     "description": "Resolves on DATE",
                 }
             ),
-            headers = {
-                "x-api-key": "somerandomapistring"
-            },
+            headers={"x-api-key": "somerandomapistring"},
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 200)
@@ -98,6 +96,42 @@ class TestMarket(unittest.TestCase):
             PredictionMarket.name == "Will more than 30 people get a 6.0 in DM?"
         ).first_or_404()
         self.assertEqual(market.description, "Resolves on DATE")
+
+
+class TestUser(unittest.TestCase):
+    def setUp(self):
+        app = create_app()
+        self.client = app.test_client()
+        self.app_context = app.app_context()
+        self.app_context.push()
+        db.create_all()
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        self.app_context.pop()
+
+    def test_get_user(self):
+        user = User(
+            username="user",
+            email="user@example.com",
+            api_key="somerandomapistring",
+            is_superuser=True,
+        )
+        user.set_password(
+            "03598da1bde6d0b536ebb13df1a44b08a734498f6ade19ae0017c8cae0d896c7"
+        )
+        db.session.add(user)
+        response = self.client.get(
+            "/user/",
+            headers={"x-api-key": "somerandomapistring"},
+        )
+        self.assertEqual(response.status_code, 200)
+        user_response = json.loads(response.data)
+        self.assertEqual(user_response["data"]["id"], user.id)
+        self.assertEqual(user_response["data"]["username"], user.username)
+        self.assertEqual(user_response["data"]["email"], user.email)
+        self.assertFalse("password_hash" in user_response["data"])
 
 
 if __name__ == "__main__":
