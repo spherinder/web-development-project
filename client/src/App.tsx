@@ -4,6 +4,7 @@ import './App.css';
 // import { fetchHelloWorld } from './api';
 import { createContext, Dispatch, SetStateAction, useState } from 'react';
 import { Dashboard } from "./components/Dashboard";
+import { Login } from './components/Login';
 
 const initStock = {
   stockSymbol: "AAPL",
@@ -25,20 +26,32 @@ const initAuth = {
 }
 export const AuthContext = createContext(initAuth);
 
+
+const initLoginPopup = {
+  isLoginPopupVisible: false,
+  setIsLoginPopupVisible: (() => {throw new Error("wont happen")}) as Dispatch<SetStateAction<boolean>>,
+}
+export const LoginPopupContext = createContext(initLoginPopup);
+
 const App = () => {
   // const {status, data, error} = useQuery({queryKey: ["helloWorld"], queryFn: fetchHelloWorld})
 
   const [darkMode, setDarkMode] = useState(false);
   const [stockSymbol, setStockSymbol] = useState("AAPL");
   const [apiToken, setApiToken] = useState(null);
+  const [isLoginPopupVisible, setIsLoginPopupVisible] = useState<boolean>(false);
 
   return (
     <AuthContext.Provider value={{ apiToken, setApiToken }}>
-    <ThemeContext.Provider value={{ darkMode, setDarkMode}}>
-      <StockContext.Provider value={{ stockSymbol, setStockSymbol }}>
-        <Dashboard />
+      <LoginPopupContext.Provider value={{ isLoginPopupVisible, setIsLoginPopupVisible }}>
+        <ThemeContext.Provider value={{ darkMode, setDarkMode}}>
+          <StockContext.Provider value={{ stockSymbol, setStockSymbol }}>
+            <Dashboard />
+             <Login show={isLoginPopupVisible}
+        onClose={() => setIsLoginPopupVisible(false)}/>
       </StockContext.Provider>
-    </ThemeContext.Provider>
+            </ThemeContext.Provider>
+    </LoginPopupContext.Provider>
     </AuthContext.Provider>
   );
 }
