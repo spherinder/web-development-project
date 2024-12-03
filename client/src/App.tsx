@@ -19,17 +19,27 @@ const initTheme = {
 
 export const ThemeContext = createContext(initTheme);
 
+const initAuth = {
+  apiToken: null,
+  setApiToken: (() => {throw new Error("wont happen")}) as Dispatch<SetStateAction<any>>,
+}
+export const AuthContext = createContext(initAuth);
+
 const App = () => {
   // const {status, data, error} = useQuery({queryKey: ["helloWorld"], queryFn: fetchHelloWorld})
 
   const [darkMode, setDarkMode] = useState(false);
   const [stockSymbol, setStockSymbol] = useState("AAPL");
+  const [apiToken, setApiToken] = useState(null);
+
   return (
+    <AuthContext.Provider value={{ apiToken, setApiToken }}>
     <ThemeContext.Provider value={{ darkMode, setDarkMode}}>
       <StockContext.Provider value={{ stockSymbol, setStockSymbol }}>
         <Dashboard />
       </StockContext.Provider>
     </ThemeContext.Provider>
+    </AuthContext.Provider>
   );
 }
 

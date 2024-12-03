@@ -1,5 +1,7 @@
 import { Quote, StockData, StockDetails } from "./model";
 
+export const serverUrl = "http://localhost:4000";
+
 export const fetchHelloWorld = () => {
   return fetch("http://localhost:5000")
     .then(res => res.json())
@@ -80,3 +82,34 @@ export const fetchQuote = async (stockSymbol: string): Promise<Quote> => {
 
   return await response.json();
 };
+
+export type transactionType = "buy" | "sell"
+export type tokenType = "yes" | "no"
+
+export const doTransaction = async (
+  kind: transactionType,
+  tokenType: tokenType,
+  amount: number,
+  apiToken: string,
+  marketId: string
+) => {
+  const url = `${serverUrl}/${marketId}/tx`;
+  console.log("buying shares in market ", marketId);
+
+  const response = await fetch(url, {
+    method: "POST",
+    body: JSON.stringify({
+      kind: `${kind}[${tokenType}]`,
+      dollars: amount
+    }),
+    headers: {
+      "x-api-key": apiToken,
+      "Content-type": "application/json; charset=UTF-8"
+    }
+  })
+
+  if (!response.ok) {
+    throw new Error(`Error when buying shares: ${response.status}`);
+  }
+
+}

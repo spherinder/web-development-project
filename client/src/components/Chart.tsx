@@ -1,6 +1,6 @@
 import { MouseEventHandler, useContext, useEffect, useState } from "react";
 import { StockContext, ThemeContext } from "../App";
-import { Card } from "./Dashboard";
+import { Card } from "./Card";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { fetchHistoricalData } from "../api";
 import { ChartSpan, StockData } from "../model";
