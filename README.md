@@ -29,6 +29,12 @@ flask run
 
 This will serve on port 4000 by default.
 
+### Alternative Reproducible approach
+
+Install the python project manager [uv](https://docs.astral.sh/uv/getting-started/installation/)
+
+Start the API server using `uv run -- flask run`
+
 ## Run server tests
 
 From inside the virtual environment, run

@@ -65,8 +65,8 @@ def purchase(is_yes: bool, dollar_amount, market: PredictionMarket, user: User):
         market_id=market.id,
         dollar_amount=dog_balance - dollar_amount,
         **{
-            buy_key: buy_balance + dollar_amount + delta,
-            sell_key: sell_balance
+            buy_key: buy_liquidity + dollar_amount + delta,
+            sell_key: sell_liquidity
         }
     )
 
@@ -141,8 +141,8 @@ def sell(is_yes: bool, token_amount, market: PredictionMarket, user: User):
         market_id=market.id,
         dollar_amount=dog_balance + delta,
         **{
-            buy_key: buy_balance,
-            sell_key: sell_balance - token_amount
+            buy_key: buy_liquidity,
+            sell_key: sell_liquidity - token_amount
         }
     )
 
