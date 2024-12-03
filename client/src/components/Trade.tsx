@@ -3,6 +3,7 @@ import {ThemeContext, StockContext, AuthContext} from "../App";
 import { Card } from "./Card";
 import { useQuery } from "@tanstack/react-query";
 import { transactionType, tokenType, doTransaction } from "../api";
+import { isNumber } from "util";
 
 const initTransactionType = {
   transactionType: "buy" as transactionType,
@@ -45,7 +46,7 @@ export const Trade = () => {
       }}>
         <Header/>
         <Buttons getSelectedButton={() => tokenType} updateSelectedButton={updateSelectedButton}/>
-        <Amount getAmount={() => tradeAmount} updateAmount={updateAmount}/>
+        <Amount tradeAmount={tradeAmount} setTradeAmount={setTradeAmount} updateAmount={updateAmount}/>
         <Execute tokenType={tokenType} tradeAmount={tradeAmount}/>
       </div>
       </TransactionContext.Provider>
@@ -132,7 +133,7 @@ const Button = ({type, selectedButton, onClick}: {
   )
 }
 
-const Amount = ({getAmount, updateAmount}: {getAmount: Function, updateAmount: Function}) => {
+const Amount = ({tradeAmount, setTradeAmount, updateAmount}: {tradeAmount: number, setTradeAmount: Function, updateAmount: Function}) => {
   const { transactionType } = useContext(TransactionContext);
 
   const amountButtonStyle = {
@@ -140,6 +141,19 @@ const Amount = ({getAmount, updateAmount}: {getAmount: Function, updateAmount: F
     width: "28px",
     height: "28px",
     backgroundColor: "#b3b3b3",
+  };
+
+  const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(event.target.value);
+    const value = event.target.value;
+    // Can be prefixed with Ð
+    if (!Number.isNaN(Number(value))) {
+      setTradeAmount(Number(value));
+    } else if (!Number.isNaN(Number(value.slice(1)))) {
+      setTradeAmount(Number(value.slice(1)));
+    } else {
+      console.log("bad format, must be number");
+    }
   };
 
   return (
@@ -165,9 +179,11 @@ const Amount = ({getAmount, updateAmount}: {getAmount: Function, updateAmount: F
         </svg>
       </button>
 
-      <input inputMode="decimal" pattern="[0-9]*"
-        placeholder="0Ð" className="amount-input"
-        value={`${transactionType === "buy" ? "Ð" : ""}${getAmount()}`}
+      <input type="text" inputMode="decimal" // pattern="[0-9]*"
+        placeholder="Ð0" className="amount-input"
+        onChange={handleAmountChange}
+        value={`${transactionType === "buy" ? "Ð" : ""}${tradeAmount}`}
+        // value={tradeAmount}
         style={{
           borderColor: "black",
           textAlign: "center",
