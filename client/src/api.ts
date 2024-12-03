@@ -6,17 +6,12 @@ export const fetchHelloWorld = () => {
     .then(r => {console.log(r); return r})
 }
 
-export const fetchHistoricalData = async (
-  stockSymbol: string,
-  resolution: string,
-  from: number,
-  to: number
-): Promise<StockData> => {
+export const fetchHistoricalData = async (): Promise<StockData> => {
   const mock = {
-    "c": [350.45, 355.12, 357.89, 352.34, 350.45, 352.89, ],
-    "h": [351.50, 356.20, 360.00, 353.70, 351.50, 350.00, ],
-    "l": [348.90, 353.80, 356.00, 350.50, 348.90, 366.00, ],
-    "o": [349.50, 354.00, 357.00, 351.00, 349.50, 357.00, ],
+    "c": [30.45, 45.12, 57.89, 52.34, 50.45, 52.89, ],
+    "h": [],
+    "l": [],
+    "o": [],
     "s": "ok",
     "t": [1732112516, 1732213416, 1732314316, 1732415216, 1732517216, 1732618216],
     "v": [1204534, 1325678, 1402345, 1256789, 1256889, 1258000]

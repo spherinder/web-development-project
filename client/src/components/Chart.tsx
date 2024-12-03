@@ -70,6 +70,7 @@ export const Chart = () => {
     return data.c.map((item, index) => {
       return {
         value: item.toFixed(2),
+        value2: (100 - item).toFixed(2),
         date: convertUnixTimestampToDate(data.t[index]),
       };
     });
@@ -78,16 +79,30 @@ export const Chart = () => {
   const {status, error, data} = useQuery({
     queryKey: ["historicalData", stockSymbol, filter],
     queryFn: () => {
-      const { startTimestampUnix, endTimestampUnix } = getDateRange(filter);
-      const resolution = chartConfig[filter].resolution;
-      return fetchHistoricalData(
-        stockSymbol,
-        resolution,
-        startTimestampUnix,
-        endTimestampUnix
-      );
+      // const { startTimestampUnix, endTimestampUnix } = getDateRange(filter);
+      // const resolution = chartConfig[filter].resolution;
+      return fetchHistoricalData();
     }
   })
+  const yesColors = darkMode ? {
+    stroke: "#ffeeff",
+    tooltipText: "#b18ee1",
+    areaStop: "#91aef1",
+  } : {
+    stroke: "#312e81",
+    tooltipText: "#312e81",
+    areaStop: "#c7d2fe",
+  }
+
+  const noColors = darkMode ? {
+    stroke: "#f1ea9e",
+    tooltipText:  "#e1ca8e",
+    areaStop: "#81592e",
+  } : {
+    stroke: "#81592e",
+    tooltipText: "#81592e",
+    areaStop: "#f1dabe",
+  }
 
   return (
     <Card>
@@ -110,31 +125,49 @@ export const Chart = () => {
             <linearGradient id="chartColor" x1="0" y1="0" x2="0" y2="1">
               <stop
                 offset="5%"
-                stopColor={darkMode ? "#312e81" : "rgb(199 210 254)"}
+                stopColor={yesColors.areaStop}
                 stopOpacity={0.8}
               />
               <stop
                 offset="95%"
-                stopColor={darkMode ? "#312e81" : "rgb(199 210 254)"}
+                stopColor={yesColors.areaStop}
+                stopOpacity={0}
+              />
+            </linearGradient>
+            <linearGradient id="chartColor2" x1="0" y1="0" x2="0" y2="1">
+              <stop
+                offset="5%"
+                stopColor={noColors.areaStop}
+                stopOpacity={0.8}
+              />
+              <stop
+                offset="95%"
+                stopColor={noColors.areaStop}
                 stopOpacity={0}
               />
             </linearGradient>
           </defs>
           <Tooltip
             contentStyle={darkMode ? { backgroundColor: "#111827" } : undefined}
-            itemStyle={darkMode ? { color: "#818cf8" } : undefined}
           />
           <Area
             type={curveCardinal.tension(0.6)}
             dataKey="value"
-            // stroke="#312e81"
-            stroke={darkMode ? "#b18ee1" : "#312e81"}
+            stroke={yesColors.stroke}
             fill="url(#chartColor)"
             fillOpacity={1}
             strokeWidth={0.5}
           />
-          <XAxis dataKey="date" />
-          <YAxis domain={["dataMin", "dataMax"]} />
+          <Area
+            type={curveCardinal.tension(0.6)}
+            dataKey="value2"
+            stroke={noColors.stroke}
+            fill="url(#chartColor2)"
+            fillOpacity={1}
+            strokeWidth={0.5}
+          />
+          <XAxis dataKey="date"/>
+          <YAxis domain={[0, 100]}/>
         </AreaChart>
       </ResponsiveContainer>
     </Card>
