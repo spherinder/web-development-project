@@ -39,7 +39,7 @@ def login():
             "data": None,
         }, 400
     return {
-        "status": user.api_key,
+        "status": "ok",
         "msg": "API key in the data field",
         "data": {"api_key": user.api_key},
     }

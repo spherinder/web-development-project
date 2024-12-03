@@ -1,9 +1,9 @@
 import { Dispatch, SetStateAction, createContext, PropsWithChildren, useContext, useEffect, useState } from "react";
-import {ThemeContext, StockContext, AuthContext} from "../App";
+import {ThemeContext, StockContext, AuthContext, LoginPopupContext} from "../App";
 import { Card } from "./Card";
 import { useQuery } from "@tanstack/react-query";
-import { transactionType, tokenType, doTransaction } from "../api";
-import { isNumber } from "util";
+import { login, transactionType, tokenType, doTransaction } from "../api";
+
 
 const initTransactionType = {
   transactionType: "buy" as transactionType,
@@ -157,7 +157,6 @@ const Amount = ({tradeAmount, setTradeAmount, updateAmount}: {tradeAmount: numbe
   };
 
   return (
-
     <div style={{
       // padding: "10px",
       display: "flex",
@@ -179,11 +178,10 @@ const Amount = ({tradeAmount, setTradeAmount, updateAmount}: {tradeAmount: numbe
         </svg>
       </button>
 
-      <input type="text" inputMode="decimal" // pattern="[0-9]*"
+      <input type="text" inputMode="decimal"
         placeholder="Ð0" className="amount-input"
         onChange={handleAmountChange}
         value={`${transactionType === "buy" ? "Ð" : ""}${tradeAmount}`}
-        // value={tradeAmount}
         style={{
           borderColor: "black",
           textAlign: "center",
@@ -205,7 +203,8 @@ const Amount = ({tradeAmount, setTradeAmount, updateAmount}: {tradeAmount: numbe
 const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: number}) => {
   const { apiToken } = useContext(AuthContext);
   const { transactionType } = useContext(TransactionContext);
-
+  const {setIsLoginPopupVisible} = useContext(LoginPopupContext);
+  
   const buttonStyle = {
     width: "250px",
     height: "50px",
@@ -225,8 +224,8 @@ const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: n
     )
   }
   return (
-      <center>
-        <button // onClick={login}
+    <center>
+        <button onClick={() => setIsLoginPopupVisible(true)}
           style={buttonStyle}>
           Login
         </button>
