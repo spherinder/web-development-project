@@ -37,7 +37,7 @@ def login():
             "status": "err",
             "msg": "Error: invalid username or password.",
             "data": None,
-        }
+        }, 400
     return {
         "status": user.api_key,
         "msg": "API key in the data field",
