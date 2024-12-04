@@ -1,7 +1,7 @@
-from flask import Blueprint, g
+from flask import Blueprint
 
-from api import db
-from api.api_key import require_api_key
+from extensions import db
+from api.api_key import g_user, require_api_key
 from api.models import User, UserBalance
 
 import sqlalchemy as sa
@@ -12,15 +12,13 @@ user_blueprint = Blueprint("user_blueprint", __name__, url_prefix="/user")
 @user_blueprint.get("/")
 @require_api_key
 def get_user_details():
-    user: User = g.user
+    user: User = g_user()
     return {"status": "ok", "msg": "", "data": user.as_dict_self()}
 
 
 @user_blueprint.get("/balances")
 @require_api_key
 def get_user_balances():
-    user: User = g.users
-
     subquery = (
         db.session.query(
             UserBalance.market_id, sa.func.max(UserBalance.timestamp).label("latest")
@@ -43,5 +41,5 @@ def get_user_balances():
     return {
         "status": "ok",
         "msg": "Data in the data field",
-        "data": list(map(results, lambda x: x.as_dict)),
+        "data": [x.as_dict for x in results],
     }

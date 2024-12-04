@@ -1,46 +1,64 @@
-from flask import Blueprint, g, request
-from api import db
+from typing import Any, Literal, cast
+from flask import Blueprint, request
+from pydantic import BaseModel
+from sqlalchemy import and_, exists
+from extensions import db
 from api.models import (
     MarketLiquidity,
     PredictionMarket,
     User,
     UserBalance,
 )
-from api.api_key import require_api_key
+from api.api_key import g_user, require_api_key
 import math
 
-market_blueprint = Blueprint("market", __name__, url_prefix="/market")
+market_blueprint: Blueprint = Blueprint("market", __name__, url_prefix="/market")
 
 
 @market_blueprint.post("/create")
 @require_api_key
 def create_market():
-    user: User = g.user
+    user = g_user()
     if not user.is_superuser:
         return {
             "status": "err",
             "msg": "Only super users can create markets",
             "data": None,
         }, 403
-    body = request.get_json()
-    market_name = body["name"]
-    market_description = body["description"]
+    body: dict[str,Any] = request.get_json()
+    market_name: str = body["name"]
+    market_description: str = body["description"]
     market = PredictionMarket(name=market_name, description=market_description)
     db.session.add(market)
     db.session.commit()
 
     return {"status": "ok", "msg": "Created that market", "data": market}
 
+def change_balance(is_yes: bool, market_id: int, user: UserBalance, tok1_diff: float = 0, tok2_diff: float = 0, dog_amount: float = 0):
+    return UserBalance(
+        user_id=user.id,
+        market_id=market_id,
+        dog_balance=dog_amount,
+        yes_balance=user.yes_balance + tok1_diff if is_yes else user.yes_balance + tok2_diff,
+        no_balance=user.no_balance + tok1_diff if is_yes else user.no_balance + tok2_diff
+    )
 
-def purchase(is_yes: bool, dollar_amount, market: PredictionMarket, user: User):
+def change_liquidity(is_yes: bool, market: MarketLiquidity, tok1_diff: float = 0, tok2_diff: float = 0):
+    return MarketLiquidity(
+        market_id=market.id,
+        yes_liquidity=market.yes_liquidity + tok1_diff if is_yes else market.yes_liquidity + tok2_diff,
+        no_liquidity=market.no_liquidity + tok2_diff if is_yes else market.no_liquidity + tok1_diff,
+    )
+
+def purchase(is_yes: bool, dollar_amount: float, market: PredictionMarket, user: User):
     """
     Turn dollar_amount in Ð into dollar_amount in ¥ and dollar_amount in ₦
 
-    k ≔ market.yes_balance * market.no_balance
+    k ≔ market.yes_liquidity * market.no_liquidity
 
     Suppose is_yes is true
 
-    (market.no_balance + dollar_amount) * (market.yes_balance - delta) = k
+    (market.no_liquidity + dollar_amount) * (market.yes_liquidity - delta) = k
     """
     # TODO: check that the user has enough money
     # TODO: assert market balance doesn't go negative (it shouldn't)
@@ -50,26 +68,21 @@ def purchase(is_yes: bool, dollar_amount, market: PredictionMarket, user: User):
         .first_or_404()
     )
 
-    product = liquidity.no_balance * liquidity.yes_balance
+    product = liquidity.no_liquidity * liquidity.yes_liquidity
     buy_liquidity, sell_liquidity = (
-        (liquidity.yes_balance, liquidity.no_balance)
+        (liquidity.yes_liquidity, liquidity.no_liquidity)
         if is_yes
-        else (liquidity.no_balance, liquidity.yes_balance)
+        else (liquidity.no_liquidity, liquidity.yes_liquidity)
     )
     delta = buy_liquidity - product / (sell_liquidity + dollar_amount)
-    buy_key, sell_key = (
-        ("yes_balance", "no_balance") if is_yes else ("no_balance", "yes_balance")
-    )
 
     # when we create the market we create an initial balance
-    new_liquidity = MarketLiquidity(
-        market_id=market.id,
-        **{buy_key: buy_liquidity - delta, sell_key: sell_liquidity + dollar_amount}
-    )
+    new_liquidity = change_liquidity(is_yes, liquidity, -delta, dollar_amount)
 
     db.session.add(new_liquidity)
 
-    dog_balance = (
+    dog_balance: float = cast(
+        UserBalance,
         UserBalance.query.filter(UserBalance.user_id == user.id)
         .order_by(UserBalance.timestamp.desc())
         .first_or_404()
@@ -77,56 +90,38 @@ def purchase(is_yes: bool, dollar_amount, market: PredictionMarket, user: User):
 
     tok_balance: UserBalance = (
         UserBalance.query.filter(
-            UserBalance.user_id == user.id and MarketLiquidity.market_id == market.id
+            and_(UserBalance.user_id == user.id, MarketLiquidity.market_id == market.id)
         )
         .order_by(UserBalance.timestamp.desc())
         .first_or_404()
     )
-
-    new_balance = UserBalance(
-        user_id=user.id,
-        market_id=market.id,
-        dollar_amount=dog_balance - dollar_amount,
-        **{
-            buy_key: buy_liquidity + dollar_amount + delta,
-            sell_key: sell_liquidity
-        }
-    )
+    new_balance = change_balance(is_yes, market.id, tok_balance, dollar_amount + delta, 0, dog_balance-dollar_amount)
 
     db.session.add(new_balance)
 
     db.session.commit()
 
 
-def sell(is_yes: bool, token_amount, market: PredictionMarket, user: User):
+def sell(is_yes: bool, token_amount: float, market: PredictionMarket, user: User):
     """
     Suppose is_yes is true. Part of token_amount in ¥ must be converted into ₦, such that
 
     token_amount - convert_amount =ꜝ delta
 
-    (market.yes_balance + convert_amount) * (market.no_balance - delta) = k
+    (market.yes_liquidity + convert_amount) * (market.no_liquidity - delta) = k
 
-    where σ ≔ market.yes_balance + market.no_balance:
+    where σ ≔ market.yes_liquidity + market.no_liquidity:
 
-    ⇒ -(market.yes_balance * token_amount)
+    ⇒ -(market.yes_liquidity * token_amount)
       + convert_amount * (σ - token_amount)
-      + (market.yes_balance)²
+      + (market.yes_liquidity)²
      =ꜝ 0
 
     ⇒ convert_amount = (token_amount - σ)/2
-      + sqrt[(token_amount - σ)²/4 + market.yes_balance * token_amount]
+      + sqrt[(token_amount - σ)²/4 + market.yes_liquidity * token_amount]
     """
     # TODO: check that the user has more than token_amount of token
     # TODO: assert market balance doesn't go negative (it shouldn't)
-
-    sell_key, buy_key = (
-        ("yes_balance", "no_balance") if is_yes else ("no_balance", "yes_balance")
-    )
-    sell_liquidity, buy_liquidity = (
-        (liquidity.yes_balance, liquidity.no_balance)
-        if is_yes
-        else (liquidity.no_balance, liquidity.yes_balance)
-    )
 
     liquidity: MarketLiquidity = (
         MarketLiquidity.query.filter(MarketLiquidity.market_id == market.id)
@@ -134,13 +129,16 @@ def sell(is_yes: bool, token_amount, market: PredictionMarket, user: User):
         .first_or_404()
     )
 
-    sigma = liquidity.no_balance + liquidity.yes_balance
+    sell_liquidity = liquidity.yes_liquidity if is_yes else liquidity.no_liquidity
+
+    sigma = liquidity.no_liquidity + liquidity.yes_liquidity
     convert_amount = (token_amount - sigma) / 2 + math.sqrt(
         (token_amount - sigma) ** 2 / 4 + sell_liquidity * token_amount
     )
     delta = token_amount - convert_amount
 
-    dog_balance = (
+    dog_balance: float = cast(
+        UserBalance,
         UserBalance.query.filter(UserBalance.user_id == user.id)
         .order_by(UserBalance.timestamp.desc())
         .first_or_404()
@@ -148,53 +146,83 @@ def sell(is_yes: bool, token_amount, market: PredictionMarket, user: User):
 
     tok_balance: UserBalance = (
         UserBalance.query.filter(
-            UserBalance.user_id == user.id and MarketLiquidity.market_id == market.id
+            and_(UserBalance.user_id == user.id, MarketLiquidity.market_id == market.id)
         )
         .order_by(UserBalance.timestamp.desc())
         .first_or_404()
     )
 
     # when we create the market we create an initial balance
-    new_liquidity = MarketLiquidity(
-        market_id=market.id,
-        **{buy_key: buy_liquidity + convert_amount, sell_key: sell_liquidity - delta}
-    )
-
+    new_liquidity = change_liquidity(is_yes, liquidity, -delta, convert_amount)
     db.session.add(new_liquidity)
 
-    new_balance = UserBalance(
-        user_id=user.id,
-        market_id=market.id,
-        dollar_amount=dog_balance + delta,
-        **{
-            buy_key: buy_liquidity,
-            sell_key: sell_liquidity - token_amount
-        }
-    )
-
+    new_balance = change_balance(is_yes, market.id, tok_balance, -token_amount, dog_amount=dog_balance + delta)
     db.session.add(new_balance)
 
     db.session.commit()
 
 
-@market_blueprint.post("/<market_id>/tx")
-@require_api_key
-def do_transaction(market_id):
-    market = PredictionMarket.query.filter(
+@market_blueprint.get("/<market_id>")
+def get_latest_market_info(market_id: int) -> dict[str,Any]:
+    market: PredictionMarket = PredictionMarket.query.filter(
         PredictionMarket.id == market_id
     ).first_or_404()
-    user: User = g.user
 
-    json = request.get_json()
-    dollars = json["dollars"]
-    kind = json["kind"]
+    liquidity: MarketLiquidity = (
+        MarketLiquidity.query.filter(
+        MarketLiquidity.market_id == market_id)
+        .order_by(MarketLiquidity.timestamp.desc())
+        .first_or_404()
+    )
 
-    if kind == "buy[yes]":
-        is_yes = True
+    return {
+        "status": "ok",
+        "data": {
+            "id": market.id,
+            "name": market.name,
+            "description": market.description,
+            "created_at": market.created_at.isoformat(),
+            "yes_liquidity": liquidity.yes_liquidity,
+            "no_liquidity": liquidity.no_liquidity,
+            "modified": liquidity.timestamp.isoformat()
+        }
+    }
+
+@market_blueprint.get("/<market_id>/history")
+def get_liquidity_history(market_id: int) -> dict[str,Any]:
+    # check market exists
+    db.session.query(exists().where(PredictionMarket.id == market_id)).scalar()
+
+    liquidities: list[MarketLiquidity] = (
+        MarketLiquidity.query.filter(MarketLiquidity.market_id == market_id)
+        .order_by(MarketLiquidity.timestamp.asc())
+        .all()
+    )
+
+    return {
+        "status": "ok",
+        "data": liquidities
+    }
+
+class TxReq(BaseModel):
+    dollars: int
+    kind: Literal["buy[yes]", "buy[no]", "sell[yes]", "sell[no]"]
+
+@market_blueprint.post("/<market_id>/tx")
+@require_api_key
+def do_transaction(market_id: int):
+    market: PredictionMarket = PredictionMarket.query.filter(
+        PredictionMarket.id == market_id
+    ).first_or_404()
+    user = g_user()
+
+    json = TxReq.model_validate(request.get_json())
+    is_yes = json.kind == "buy[yes]" or json.kind == "sell[yes]"
+    is_buy = json.kind == "buy[no]" or json.kind == "buy[yes]"
+
+    if is_buy:
+        purchase(is_yes, json.dollars, market, user)
     else:
-        assert kind == "buy[no]"
-        is_yes = False
+        sell(is_yes, json.dollars, market, user)
 
-    purchase(is_yes, dollars, market, user)
-
-    return {"status": "ok", "msg": "Purchased", "data": None}
+    return {"status": "ok", "msg": "Purchased" if is_buy else "Sold", "data": None}

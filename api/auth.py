@@ -1,12 +1,16 @@
 from api.models import User
-from api import db
+from extensions import db
 from flask import Blueprint, request
 import secrets
 import sqlalchemy as sa
-
+from pydantic import BaseModel
 
 auth_blueprint = Blueprint("auth", __name__, url_prefix="/auth")
 
+class RegisterReq(BaseModel):
+    username: str
+    email: str
+    password: str
 
 @auth_blueprint.post("/register")
 def register():
@@ -14,25 +18,28 @@ def register():
     # todo: input sanitisation
     # todo: fail gracefully with missing data
 
-    json = request.get_json()
+    json = RegisterReq.model_validate(request.get_json())
     user = User(
-        username=json["username"],
-        email=json["email"],
+        username=json.username,
+        email=json.email,
         api_key=api_key,
         is_superuser=False,
     )
-    user.set_password(json["password"])
+    user.set_password(json.password)
     db.session.add(user)
     db.session.commit()
 
     return {"status": "ok", "msg": "Created that user", "data": None}
 
+class LoginReq(BaseModel):
+    username: str
+    password: str
 
 @auth_blueprint.post("/login")
 def login():
-    json = request.get_json()
-    user = db.session.scalar(sa.select(User).where(User.username == json["username"]))
-    if user is None or not user.check_password(json["password"]):
+    json = RegisterReq.model_validate(request.get_json())
+    user = db.session.scalar(sa.select(User).where(User.username == json.username))
+    if user is None or not user.check_password(json.password):
         return {
             "status": "err",
             "msg": "Error: invalid username or password.",

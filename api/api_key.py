@@ -1,14 +1,18 @@
 from functools import wraps
+from typing import Any, Callable, cast
 from flask import g, request
-from api import db
+from flask.typing import ResponseReturnValue
+from extensions import db
 import sqlalchemy as sa
 
 from api.models import User
 
+def g_user() -> User:
+    return cast(User, g.user)
 
-def require_api_key(view_function, header_name="x-api-key"):
+def require_api_key(view_function: Callable[..., ResponseReturnValue], header_name: str = "x-api-key") -> Callable[..., ResponseReturnValue]:
     @wraps(view_function)
-    def decorated_function(*args, **kwargs):
+    def decorated_function(*args: tuple[Any], **kwargs: dict[str, Any]) -> ResponseReturnValue:
         if not request.headers.get(header_name):
             return {
                 "status": "err",

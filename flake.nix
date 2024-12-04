@@ -75,7 +75,6 @@
             packages = with pkgs; [
               virtualenv
               uv
-              python312Packages.python-lsp-server
               nodejs
               nodePackages.typescript
               nodePackages.typescript-language-server

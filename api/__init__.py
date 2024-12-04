@@ -1,16 +1,11 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 from flask_cors import CORS
 from config import Config
+from extensions import db, migrate
 
-db = SQLAlchemy()
-migrate = Migrate()
-
-
-def create_app(config_class=Config):
+def create_app(config_class: type[Config] = Config):
     app = Flask(__name__)
-    CORS(app, supports_credentials=True)
+    _ = CORS(app, supports_credentials=True)
     app.config.from_object(config_class)
     db.init_app(app)
     migrate.init_app(app, db)
@@ -26,4 +21,4 @@ def create_app(config_class=Config):
     return app
 
 
-from api import models
+# from api import models
