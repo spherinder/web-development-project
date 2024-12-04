@@ -1,6 +1,7 @@
+from dataclasses import dataclass
 from typing import Any, Literal, cast
 from flask import Blueprint, request
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from sqlalchemy import and_, exists
 from extensions import db
 from api.models import (
@@ -205,7 +206,7 @@ def get_liquidity_history(market_id: int) -> dict[str,Any]:
     }
 
 class TxReq(BaseModel):
-    dollars: int
+    amount: int
     kind: Literal["buy[yes]", "buy[no]", "sell[yes]", "sell[no]"]
 
 @market_blueprint.post("/<market_id>/tx")
@@ -216,13 +217,21 @@ def do_transaction(market_id: int):
     ).first_or_404()
     user = g_user()
 
-    json = TxReq.model_validate(request.get_json())
+    try:
+        json = TxReq.model_validate(request.get_json())
+    except ValidationError as e:
+        return ({
+            "status": "error",
+            "msg": "Invalid input",
+            "error": e.errors()
+        }, 400)
+
     is_yes = json.kind == "buy[yes]" or json.kind == "sell[yes]"
     is_buy = json.kind == "buy[no]" or json.kind == "buy[yes]"
 
     if is_buy:
-        purchase(is_yes, json.dollars, market, user)
+        purchase(is_yes, json.amount, market, user)
     else:
-        sell(is_yes, json.dollars, market, user)
+        sell(is_yes, json.amount, market, user)
 
     return {"status": "ok", "msg": "Purchased" if is_buy else "Sold", "data": None}

@@ -3,7 +3,7 @@ from extensions import db
 from flask import Blueprint, request
 import secrets
 import sqlalchemy as sa
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 auth_blueprint = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -18,7 +18,15 @@ def register():
     # todo: input sanitisation
     # todo: fail gracefully with missing data
 
-    json = RegisterReq.model_validate(request.get_json())
+    try:
+        json = RegisterReq.model_validate(request.get_json())
+    except ValidationError as e:
+        return ({
+            "status": "error",
+            "msg": "Invalid input",
+            "error": e.errors()
+        }, 400)
+
     user = User(
         username=json.username,
         email=json.email,
@@ -37,7 +45,15 @@ class LoginReq(BaseModel):
 
 @auth_blueprint.post("/login")
 def login():
-    json = RegisterReq.model_validate(request.get_json())
+    try:
+        json = RegisterReq.model_validate(request.get_json())
+    except ValidationError as e:
+        return ({
+            "status": "error",
+            "msg": "Invalid input",
+            "error": e.errors()
+        }, 400)
+
     user = db.session.scalar(sa.select(User).where(User.username == json.username))
     if user is None or not user.check_password(json.password):
         return {
