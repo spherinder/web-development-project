@@ -1,5 +1,7 @@
 import { Dispatch, SetStateAction, createContext, PropsWithChildren, useContext, useEffect, useState } from "react";
-import {ThemeContext, StockContext, AuthContext, LoginPopupContext} from "../App";
+import { useNavigate } from 'react-router-dom';
+
+import {ThemeContext, StockContext, AuthContext } from "../App";
 import { Card } from "./Card";
 import { useQuery } from "@tanstack/react-query";
 import { login, transactionType, tokenType, doTransaction } from "../api";
@@ -203,8 +205,8 @@ const Amount = ({tradeAmount, setTradeAmount, updateAmount}: {tradeAmount: numbe
 const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: number}) => {
   const { apiToken } = useContext(AuthContext);
   const { transactionType } = useContext(TransactionContext);
-  const {setIsLoginPopupVisible} = useContext(LoginPopupContext);
-  
+  const navigate = useNavigate();
+
   const buttonStyle = {
     width: "250px",
     height: "50px",
@@ -225,7 +227,7 @@ const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: n
   }
   return (
     <center>
-        <button onClick={() => setIsLoginPopupVisible(true)}
+        <button onClick={() => navigate("/login")}
           style={buttonStyle}>
           Login
         </button>

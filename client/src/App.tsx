@@ -2,6 +2,7 @@
 import './App.css';
 // import { useQuery } from '@tanstack/react-query';
 // import { fetchHelloWorld } from './api';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { createContext, Dispatch, SetStateAction, useState } from 'react';
 import { Dashboard } from "./components/Dashboard";
 import { Login } from './components/Login';
@@ -26,13 +27,6 @@ const initAuth = {
 }
 export const AuthContext = createContext(initAuth);
 
-
-const initLoginPopup = {
-  isLoginPopupVisible: false,
-  setIsLoginPopupVisible: (() => {throw new Error("wont happen")}) as Dispatch<SetStateAction<boolean>>,
-}
-export const LoginPopupContext = createContext(initLoginPopup);
-
 const App = () => {
   // const {status, data, error} = useQuery({queryKey: ["helloWorld"], queryFn: fetchHelloWorld})
 
@@ -43,16 +37,17 @@ const App = () => {
 
   return (
     <AuthContext.Provider value={{ apiToken, setApiToken }}>
-      <LoginPopupContext.Provider value={{ isLoginPopupVisible, setIsLoginPopupVisible }}>
-        <ThemeContext.Provider value={{ darkMode, setDarkMode}}>
-          <StockContext.Provider value={{ stockSymbol, setStockSymbol }}>
-            <Dashboard />
-             <Login show={isLoginPopupVisible}
-        onClose={() => setIsLoginPopupVisible(false)}/>
-      </StockContext.Provider>
+      <ThemeContext.Provider value={{ darkMode, setDarkMode}}>
+        <StockContext.Provider value={{ stockSymbol, setStockSymbol }}>
+          <BrowserRouter>
+            <Routes>
+            <Route path="/" element={<Dashboard />} />
+          <Route path="/login" element={<Login />} />
+          </Routes>
+            </BrowserRouter>
+            </StockContext.Provider>
             </ThemeContext.Provider>
-    </LoginPopupContext.Provider>
-    </AuthContext.Provider>
+            </AuthContext.Provider>
   );
 }
 

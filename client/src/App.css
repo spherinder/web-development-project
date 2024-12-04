@@ -37,3 +37,56 @@
   }
 }
 
+
+.login-form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: sans-serif;
+    line-height: 1.5;
+    min-height: 100vh;
+    flex-direction: column;
+    margin: 0;
+
+    & form {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    & label {
+        display: block;
+        width: 100%;
+        margin-top: 10px;
+        margin-bottom: 5px;
+        text-align: left;
+        color: #555;
+        font-weight: bold;
+    }
+
+    & .submit-button {
+        width: 250px;
+        height: 30px;
+        text-align: center;
+        background-color: #2D9CDB;
+    }
+
+    & p {
+        padding: 10px;
+
+        & a {
+            margin: 10px;
+            color: blue;
+        }
+    }
+
+}
+
+
+.form-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100% !important;
+}
