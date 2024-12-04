@@ -28,18 +28,25 @@ const initAuth = {
 }
 export const AuthContext = createContext(initAuth);
 
+const initMarket = {
+  marketId: "",
+  setMarketId: (() => {throw new Error("wont happen")}) as Dispatch<SetStateAction<string>>
+}
+export const MarketContext = createContext(initMarket);
+
 const App = () => {
   // const {status, data, error} = useQuery({queryKey: ["helloWorld"], queryFn: fetchHelloWorld})
 
   const [darkMode, setDarkMode] = useState(false);
   const [stockSymbol, setStockSymbol] = useState("AAPL");
   const [apiToken, setApiToken] = useState(null);
-  const [isLoginPopupVisible, setIsLoginPopupVisible] = useState<boolean>(false);
+  const [marketId, setMarketId] = useState("");
 
   return (
     <AuthContext.Provider value={{ apiToken, setApiToken }}>
       <ThemeContext.Provider value={{ darkMode, setDarkMode}}>
         <StockContext.Provider value={{ stockSymbol, setStockSymbol }}>
+          <MarketContext.Provider value={{ marketId, setMarketId }}>
           <BrowserRouter>
             <Routes>
             <Route path="/" element={<Dashboard />} />
@@ -47,6 +54,7 @@ const App = () => {
           <Route path="/register" element={<Register />} />
           </Routes>
             </BrowserRouter>
+            </MarketContext.Provider>
             </StockContext.Provider>
             </ThemeContext.Provider>
             </AuthContext.Provider>
