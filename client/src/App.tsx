@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { createContext, Dispatch, SetStateAction, useState } from 'react';
 import { Dashboard } from "./components/Dashboard";
 import { Login } from './components/Login';
+import { Register } from './components/Register';
 
 const initStock = {
   stockSymbol: "AAPL",
@@ -43,6 +44,7 @@ const App = () => {
             <Routes>
             <Route path="/" element={<Dashboard />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           </Routes>
             </BrowserRouter>
             </StockContext.Provider>
