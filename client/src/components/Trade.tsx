@@ -1,7 +1,9 @@
 import { Dispatch, SetStateAction, createContext, PropsWithChildren, useContext, useEffect, useState } from "react";
-import {ThemeContext, StockContext, AuthContext, LoginPopupContext} from "../App";
+import { useNavigate } from 'react-router-dom';
+
+import {ThemeContext, StockContext, AuthContext, MarketContext } from "../App";
 import { Card } from "./Card";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { login, transactionType, tokenType, doTransaction } from "../api";
 
 
@@ -28,7 +30,6 @@ export const Trade = () => {
       setTradeAmount(tradeAmount - 1);
     }
   }
-
 
   return (
     <Card>
@@ -203,8 +204,18 @@ const Amount = ({tradeAmount, setTradeAmount, updateAmount}: {tradeAmount: numbe
 const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: number}) => {
   const { apiToken } = useContext(AuthContext);
   const { transactionType } = useContext(TransactionContext);
-  const {setIsLoginPopupVisible} = useContext(LoginPopupContext);
-  
+  const { marketId } = useContext(MarketContext);
+
+  const navigate = useNavigate();
+  const mutation = useMutation({
+    mutationFn: (() => executeTransaction(
+      transactionType, tokenType, tradeAmount, apiToken!, marketId
+    )),
+    onSuccess: (_ => {
+      console.log("transaction successful");
+    })
+  });
+
   const buttonStyle = {
     width: "250px",
     height: "50px",
@@ -213,10 +224,15 @@ const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: n
     backgroundColor: "#2D9CDB",
   };
 
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    mutation.mutate()
+  }
+
   if (apiToken) {
     return (
       <center>
-        <button onClick={() => executeTransaction(transactionType, tokenType, tradeAmount, apiToken)}
+        <button onClick={handleSubmit}
           style={buttonStyle}>
           Execute Transaction
         </button>
@@ -225,7 +241,7 @@ const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: n
   }
   return (
     <center>
-        <button onClick={() => setIsLoginPopupVisible(true)}
+        <button onClick={() => navigate("/login")}
           style={buttonStyle}>
           Login
         </button>
@@ -233,15 +249,17 @@ const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: n
   )
 }
 
-const executeTransaction = (
+const executeTransaction = async (
   kind: transactionType,
   type: tokenType,
   amount: number,
-  apiToken: string
+  apiToken: string,
+  marketId: string,
 ) => {
   console.log("executing transaction")
   if (amount === 0) {
     alert("You have specified an amount of 0")
   }
+  return await doTransaction(kind, type, amount, apiToken, marketId);
 
 }

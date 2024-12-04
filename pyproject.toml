@@ -11,36 +11,14 @@ dependencies = [
     "flask>=3.0.3",
     "pydantic>=2.10.3",
     "python-dotenv>=1.0.1",
-    # "types-flask>=1.1.6",
-    # "types-flask-cors>=5.0.0.20240902",
-    # "types-flask-migrate>=4.0.0.20240311",
-    # "types-sqlalchemy>=1.4.53.38",
-    # "types-werkzeug>=1.0.9",
-    # "mypy>=1.13.0",
-    # "pylsp-mypy>=0.6.9",
-    # "python-lsp-server>=1.12.0",
 ]
 
 [tool.setuptools]
 packages = ["api", "migrations"]
 
-# [tool.pylsp-mypy]
-# enabled = true
-# live_mode = true
-# strict = true
-# exclude = ["tests/*"]
-
 [tool.uv]
 dev-dependencies = [
-    # "types-flask>=1.1.6",
-    # "types-flask-cors>=5.0.0.20240902",
-    # "types-flask-migrate>=4.0.0.20240311",
-    # "types-sqlalchemy>=1.4.53.38",
-    # "types-werkzeug>=1.0.9",
-    "basedpyright>=1.22.0",
-    # "mypy>=1.13.0",
-    # "pylsp-mypy>=0.6.9",
-    # "python-lsp-server[all]>=1.12.0",
+    "basedpyright>=1.22.0", # could also be installed in flake
 ]
 
 # [dependency-groups]

@@ -115,7 +115,27 @@ export const doTransaction = async (
 }
 
 export const register = async (username: string, email: string, password: string) => {
+  const url = `${serverUrl}/auth/register`;
+  console.log("registering");
 
+  const response = await fetch(url, {
+    method: "POST",
+    mode: "cors",
+    credentials: 'include',
+
+    body: JSON.stringify({
+      username: username,
+      email: email,
+      password: password,
+    }),
+    headers: {
+      "Content-type": "application/json; charset=UTF-8"
+    }
+  })
+
+  if (!response.ok) {
+    throw new Error(`Error when registering in: ${response.status}`);
+  }
 }
 
 export const login = async (username: string, password: string) => {

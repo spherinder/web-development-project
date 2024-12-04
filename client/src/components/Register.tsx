@@ -1,31 +1,27 @@
 import { FC, PropsWithChildren, useContext, useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import {ThemeContext, StockContext, AuthContext} from "../App";
-import { login } from "../api";
+import {ThemeContext, StockContext} from "../App";
+import { register } from "../api";
 import { Header } from "./Header";
-import { Quote, StockDetails } from "../model";
 import { useMutation } from "@tanstack/react-query";
 import { Trade } from "./Trade";
 
 
-export const Login = () => {
+export const Register = () => {
   const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
   const mutation = useMutation({
-    mutationFn: (_ => login(username, password)),
-    onSuccess: ((apiToken, _variables, _context) => {
-      setApiToken(apiToken);
-      console.log(apiToken);
-      navigate("/")}),
+    mutationFn: (_ => register(username, email,password)),
+    onSuccess: (_ => navigate("/login")),
   });
-
-  const { setApiToken } = useContext(AuthContext);
+  
   const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    console.log(username, password);
+    console.log("register", username, email, password);
     mutation.mutate()
   };
 
@@ -34,20 +30,28 @@ export const Login = () => {
   }
 
   if (mutation.status === "error") {
-    return <h1>Login unsuccessful.  Please double-check your details.</h1>
+    return <h1>An error occured.  Please try again.</h1>
   }
-
+  
   return (
     <div className="form-container">
       <div className="login-form">
-        <h3 style={{fontSize: "30px"}}>Enter your login credentials</h3>
+        <h3 style={{fontSize: "30px"}}>Register your account</h3>
         <form  action="">
+
           <label htmlFor="first">
             Username:
           </label>
           <input type="text" id="first" name="first"
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Enter your Username" required/>
+
+          <label htmlFor="second">
+            Email:
+          </label>
+          <input type="text" id="second" name="second"
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your Email" required/>
 
           <label htmlFor="password">
             Password:
@@ -58,13 +62,14 @@ export const Login = () => {
 
           <button type="submit" className="submit-button"
             onClick={handleSubmit}>
-            Submit
+            Register
           </button>
+
         </form>
 
-        <p>Not registered?   
-          <a href="/register">
-            Create an account
+        <p>Already registered?
+          <a href="/login">
+            Login
           </a>
         </p>
       </div>
