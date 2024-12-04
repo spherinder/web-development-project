@@ -4,7 +4,7 @@ import {ThemeContext, StockContext, AuthContext} from "../App";
 import { login } from "../api";
 import { Header } from "./Header";
 import { Quote, StockDetails } from "../model";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Trade } from "./Trade";
 
 
@@ -12,26 +12,31 @@ export const Login = () => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
+  const mutation = useMutation({
+    mutationFn: (_ => login(username, password)),
+    onSuccess: ((apiToken, _variables, _context) => {
+      setApiToken(apiToken);
+      console.log(apiToken);
+      navigate("/")}),
+  });
+
   const { setApiToken } = useContext(AuthContext);
   const navigate = useNavigate();
-  // console.log("login show", show);
 
-  // TODO: use react query
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     console.log(username, password);
-    try {
-      const apiToken = await login(username, password);
-      setApiToken(apiToken);
-      console.log(apiToken);
-    } catch (err) {
-      console.log("login failed")
-      alert("Login failed! Please double-check you username and password")
-      return
-    }
-    navigate("/");
+    mutation.mutate()
   };
-    
+
+  if (mutation.status === "pending") {
+    return <h1>Loading...</h1>
+  }
+
+  if (mutation.status === "error") {
+    return <h1>Login unsuccessful.  Please double-check your details.</h1>
+  }
+
   return (
     <div className="form-container">
       <div className="login-form">

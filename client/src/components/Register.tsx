@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {ThemeContext, StockContext} from "../App";
 import { register } from "../api";
 import { Header } from "./Header";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Trade } from "./Trade";
 
 
@@ -12,64 +12,67 @@ export const Register = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
+  const mutation = useMutation({
+    mutationFn: (_ => register(username, email,password)),
+    onSuccess: (_ => navigate("/login")),
+  });
+  
   const navigate = useNavigate();
 
-    // console.log("login show", show);
-
-  // TODO: use react query
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     console.log("register", username, email, password);
-    try {
-      await register(username, email, password);
-    } catch (err) {
-      console.log("login failed")
-      alert("Login failed! Please double-check you username and password")
-      return
-    }
-    navigate("/login");
+    mutation.mutate()
   };
 
-    return (
-      <div className="form-container">
-        <div className="login-form">
-          <h3 style={{fontSize: "30px"}}>Register your account</h3>
-          <form  action="">
+  if (mutation.status === "pending") {
+    return <h1>Loading...</h1>
+  }
 
-            <label htmlFor="first">
-              Username:
-            </label>
-            <input type="text" id="first" name="first"
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your Username" required/>
+  if (mutation.status === "error") {
+    return <h1>An error occured.  Please try again.</h1>
+  }
+  
+  return (
+    <div className="form-container">
+      <div className="login-form">
+        <h3 style={{fontSize: "30px"}}>Register your account</h3>
+        <form  action="">
 
-            <label htmlFor="second">
-              Email:
-            </label>
-            <input type="text" id="second" name="second"
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your Email" required/>
+          <label htmlFor="first">
+            Username:
+          </label>
+          <input type="text" id="first" name="first"
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Enter your Username" required/>
 
-            <label htmlFor="password">
-              Password:
-            </label>
-            <input type="password" id="password" name="password"
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your Password" required/>
+          <label htmlFor="second">
+            Email:
+          </label>
+          <input type="text" id="second" name="second"
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your Email" required/>
 
-            <button type="submit" className="submit-button"
-              onClick={handleSubmit}>
-              Register
-            </button>
+          <label htmlFor="password">
+            Password:
+          </label>
+          <input type="password" id="password" name="password"
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your Password" required/>
 
-          </form>
+          <button type="submit" className="submit-button"
+            onClick={handleSubmit}>
+            Register
+          </button>
 
-          <p>Already registered?
-            <a href="/login">
-              Login
-            </a>
-          </p>
-        </div>
+        </form>
+
+        <p>Already registered?
+          <a href="/login">
+            Login
+          </a>
+        </p>
       </div>
-    )
+    </div>
+  )
 }
