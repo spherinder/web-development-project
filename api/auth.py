@@ -45,17 +45,18 @@ class LoginReq(BaseModel):
 
 @auth_blueprint.post("/login")
 def login():
-    try:
-        json = RegisterReq.model_validate(request.get_json())
-    except ValidationError as e:
-        return ({
-            "status": "error",
-            "msg": "Invalid input",
-            "error": e.errors()
-        }, 400)
+    json = request.get_json()
+    # try:
+    #     json = RegisterReq.model_validate(request.get_json())
+    # except ValidationError as e:
+    #     return ({
+    #         "status": "error",
+    #         "msg": "Invalid input",
+    #         "error": e.errors()
+    #     }, 400)
 
-    user = db.session.scalar(sa.select(User).where(User.username == json.username))
-    if user is None or not user.check_password(json.password):
+    user = db.session.scalar(sa.select(User).where(User.username == json['username']))
+    if user is None or not user.check_password(json['password']):
         return {
             "status": "err",
             "msg": "Error: invalid username or password.",

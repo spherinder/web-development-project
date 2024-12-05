@@ -74,7 +74,7 @@ class UserBalance(db.Model, Inspectable[so.Mapper[Any]]):
     no_balance: so.Mapped[float] = so.mapped_column(sa.Float())
     dog_balance: so.Mapped[float] = so.mapped_column(sa.Float())
     timestamp: so.Mapped[datetime.datetime] = so.mapped_column(
-        index=True, default_factory=lambda: datetime.datetime.now(datetime.timezone.utc)
+        index=True, default=lambda: datetime.datetime.now(datetime.timezone.utc)
     )
 
     def as_dict(self) -> dict[str, Any]:
