@@ -1,6 +1,6 @@
-import { FC, PropsWithChildren, useContext, useEffect, useState } from "react";
+import { FC, PropsWithChildren, useContext, useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import {ThemeContext, StockContext} from "../App";
+import {ThemeContext} from "../App";
 import { register } from "../api";
 import { Header } from "./Header";
 import { useMutation } from "@tanstack/react-query";

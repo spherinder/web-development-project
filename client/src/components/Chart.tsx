@@ -1,11 +1,11 @@
-import { MouseEventHandler, useContext, useEffect, useState } from "react";
-import { StockContext, ThemeContext } from "../App";
+import { MouseEventHandler, useContext, useState } from "react";
+import { AuthContext, MarketContext, ThemeContext } from "../App";
 import { Card } from "./Card";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { fetchHistoricalData } from "../api";
-import { ChartSpan, StockData } from "../model";
+import { ChartSpan, LiquidityHistory } from "../model";
 import {curveCardinal} from "d3-shape"
 import { useQuery } from "@tanstack/react-query";
+import { dollarsPerYes, fetchLiquidityHistory } from "../api";
 
 const convertUnixTimestampToDate = (unixTimestamp: number): string => {
   const milliseconds = unixTimestamp * 1000;
@@ -59,29 +59,31 @@ const getDateRange = (filter: ChartSpan) => {
   return { startTimestampUnix, endTimestampUnix };
 };
 
+
+const formatData = (data: LiquidityHistory) => {
+  return data.map(({yes_liquidity: y, no_liquidity: n, timestamp}) => {
+    const price = dollarsPerYes(y,n);
+      return {
+        "¥ price": price.toFixed(2),
+        "₦ price": (1-price).toFixed(2),
+        date: timestamp,
+        // date: convertUnixTimestampToDate(data.t[index]),
+      };
+  });
+};
+
 export const Chart = () => {
   const [filter, setFilter] = useState<ChartSpan>("1W");
 
   const { darkMode } = useContext(ThemeContext);
 
-  const { stockSymbol } = useContext(StockContext);
+  const { market } = useContext(MarketContext);
 
-  const formatData = (data: StockData) => {
-    return data.c.map((item, index) => {
-      return {
-        value: item.toFixed(2),
-        value2: (100 - item).toFixed(2),
-        date: convertUnixTimestampToDate(data.t[index]),
-      };
-    });
-  };
 
-  const {status, error, data} = useQuery({
-    queryKey: ["historicalData", stockSymbol, filter],
+  const {status, error: _, data} = useQuery({
+    queryKey: ["historicalData", market?.id],
     queryFn: () => {
-      // const { startTimestampUnix, endTimestampUnix } = getDateRange(filter);
-      // const resolution = chartConfig[filter].resolution;
-      return fetchHistoricalData();
+      return fetchLiquidityHistory(market?.id ?? 1); // FIXME
     }
   })
   const yesColors = darkMode ? {
@@ -152,7 +154,7 @@ export const Chart = () => {
           />
           <Area
             type={curveCardinal.tension(0.6)}
-            dataKey="value"
+            dataKey="¥ price"
             stroke={yesColors.stroke}
             fill="url(#chartColor)"
             fillOpacity={1}
@@ -160,14 +162,14 @@ export const Chart = () => {
           />
           <Area
             type={curveCardinal.tension(0.6)}
-            dataKey="value2"
+            dataKey="₦ price"
             stroke={noColors.stroke}
             fill="url(#chartColor2)"
             fillOpacity={1}
             strokeWidth={0.5}
           />
           <XAxis dataKey="date"/>
-          <YAxis domain={[0, 100]}/>
+          <YAxis domain={[0, 1]}/>
         </AreaChart>
       </ResponsiveContainer>
     </Card>

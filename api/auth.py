@@ -19,6 +19,7 @@ def register(body: RegisterReq):
     api_key = secrets.token_urlsafe(32)
     # todo: input sanitisation
     # todo: fail gracefully with missing data
+    # todo: check username doesnt already exist
     user = User(
         username=body.username,
         email=body.email,

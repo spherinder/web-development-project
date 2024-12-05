@@ -1,11 +1,8 @@
-import { FC, PropsWithChildren, useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import {ThemeContext, StockContext, AuthContext} from "../App";
+import {ThemeContext, AuthContext} from "../App";
 import { login } from "../api";
-import { Header } from "./Header";
-import { Quote, StockDetails } from "../model";
 import { useMutation } from "@tanstack/react-query";
-import { Trade } from "./Trade";
 
 
 export const Login = () => {

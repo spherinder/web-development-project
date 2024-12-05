@@ -1,63 +1,63 @@
-import { FC, PropsWithChildren, useContext, useEffect, useState } from "react";
-import {ThemeContext, StockContext} from "../App";
+import { useContext } from "react";
+import {ThemeContext} from "../App";
 import { Chart } from "./Chart";
-import { fetchQuote, fetchStockDetails } from "../api";
+// import { fetchQuote, fetchStockDetails } from "../api";
 import { Header } from "./Header";
-import { Quote, StockDetails } from "../model";
-import { useQuery } from "@tanstack/react-query";
+// import { Quote, StockDetails } from "../model";
+// import { useQuery } from "@tanstack/react-query";
 import { Trade } from "./Trade";
 import { Card } from "./Card";
 
-type DetailsList = {
-  name: string,
-  country: string,
-  currency: string,
-  exchange: string,
-  ipo: string,
-  marketCapitalization: string,
-  finnhubIndustry: string,
-}
+// type DetailsList = {
+//   name: string,
+//   country: string,
+//   currency: string,
+//   exchange: string,
+//   ipo: string,
+//   marketCapitalization: string,
+//   finnhubIndustry: string,
+// }
 
-const Details = ({ details }: {details: StockDetails | null}) => {
-  const { darkMode } = useContext(ThemeContext);
+// const Details = ({ details }: {details: StockDetails | null}) => {
+//   const { darkMode } = useContext(ThemeContext);
 
-  const detailsList: DetailsList = {
-    name: "Name",
-    country: "Country",
-    currency: "Currency",
-    exchange: "Exchange",
-    ipo: "IPO Date",
-    marketCapitalization: "Market Capitalization",
-    finnhubIndustry: "Industry",
-  };
+//   const detailsList: DetailsList = {
+//     name: "Name",
+//     country: "Country",
+//     currency: "Currency",
+//     exchange: "Exchange",
+//     ipo: "IPO Date",
+//     marketCapitalization: "Market Capitalization",
+//     finnhubIndustry: "Industry",
+//   };
 
-  const convertMillionToBillion = (number: number) => {
-    return (number / 1000).toFixed(2);
-  };
+//   const convertMillionToBillion = (number: number) => {
+//     return (number / 1000).toFixed(2);
+//   };
 
-  return (
-    <Card>
-      <ul
-        className={`w-full h-full flex flex-col justify-between divide-y-1 ${
-          darkMode ? "divide-gray-800" : null
-        }`}
-      >
-        {details ? (Object.keys(detailsList) as Array<keyof DetailsList>).map(item => {
-          return (
-            <li key={item} className="flex-1 flex justify-between items-center">
-              <span>{detailsList[item]}</span>
-              <span className="font-bold">
-                {item === "marketCapitalization" && details
-                  ? `${convertMillionToBillion(details[item])}B`
-                  : details[item]}
-              </span>
-            </li>
-          );
-        }) : (<></>)}
-      </ul>
-    </Card>
-  );
-};
+//   return (
+//     <Card>
+//       <ul
+//         className={`w-full h-full flex flex-col justify-between divide-y-1 ${
+//           darkMode ? "divide-gray-800" : null
+//         }`}
+//       >
+//         {details ? (Object.keys(detailsList) as Array<keyof DetailsList>).map(item => {
+//           return (
+//             <li key={item} className="flex-1 flex justify-between items-center">
+//               <span>{detailsList[item]}</span>
+//               <span className="font-bold">
+//                 {item === "marketCapitalization" && details
+//                   ? `${convertMillionToBillion(details[item])}B`
+//                   : details[item]}
+//               </span>
+//             </li>
+//           );
+//         }) : (<></>)}
+//       </ul>
+//     </Card>
+//   );
+// };
 
 type OverviewProps = {
   symbol: string,
@@ -95,17 +95,15 @@ const Overview = ({ symbol, price, change, changePercent, currency }: OverviewPr
 export const Dashboard = () => {
   const { darkMode } = useContext(ThemeContext);
 
-  const { stockSymbol } = useContext(StockContext);
+  // const {status: detailStatus, data: stockDetails} = useQuery({
+  //   queryKey: ["stockDetails", stockSymbol],
+  //   queryFn: () => fetchStockDetails(stockSymbol)
+  // })
 
-  const {status: detailStatus, data: stockDetails} = useQuery({
-    queryKey: ["stockDetails", stockSymbol],
-    queryFn: () => fetchStockDetails(stockSymbol)
-  })
-
-  const {data: quote} = useQuery({
-    queryKey: ["fetchQuote", stockSymbol],
-    queryFn: () => fetchQuote(stockSymbol)
-  })
+  // const {data: quote} = useQuery({
+  //   queryKey: ["fetchQuote", stockSymbol],
+  //   queryFn: () => fetchQuote(stockSymbol)
+  // })
 
   return (
     <div
@@ -114,18 +112,26 @@ export const Dashboard = () => {
       }`}
     >
       <div className="col-span-1 md:col-span-2 xl:col-span-3 row-span-1 flex justify-start items-center">
-        <Header name={stockDetails?.name ?? ""} />
+        {/*<Header name={stockDetails?.name ?? ""} />*/}
+        <Header name={""} />
       </div>
       <div className="md:col-span-2 row-span-4">
         <Chart />
       </div>
       <div>
-        <Overview
+        {/*<Overview
           symbol={stockSymbol}
           price={quote?.pc ?? 0}
           change={quote?.d ?? 0}
           changePercent={quote?.dp ?? 0}
           currency={stockDetails?.currency ?? ""}
+        />*/}
+        <Overview
+          symbol={"foobar"}
+          price={0}
+          change={0}
+          changePercent={0}
+          currency={""}
         />
       </div>
       <div className="row-span-2 xl:row-span-3">

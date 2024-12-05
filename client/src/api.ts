@@ -1,50 +1,55 @@
-import { Quote, StockData, StockDetails } from "./model";
+import { LiquidityHistory } from "./model";
 
 export const serverUrl = "http://localhost:4000";
 
-export const fetchHelloWorld = () => {
-  return fetch("http://localhost:5000")
-    .then(res => res.json())
-    .then(r => {console.log(r); return r})
+export const fetchLiquidityHistory = async (
+  marketId: number
+): Promise<LiquidityHistory> => {
+
+  const response = await fetch(`${serverUrl}/market/${marketId}/history`)
+  const json = await response.json()
+
+  if (!response.ok) {
+    throw new Error(`Error when buying shares: ${response.status}`);
+  }
+  return json.data
 }
 
-export const fetchHistoricalData = async (): Promise<StockData> => {
-  const mock = {
-    "c": [30.45, 45.12, 57.89, 52.34, 50.45, 52.89, ],
-    "h": [],
-    "l": [],
-    "o": [],
-    "s": "ok",
-    "t": [1732112516, 1732213416, 1732314316, 1732415216, 1732517216, 1732618216],
-    "v": [1204534, 1325678, 1402345, 1256789, 1256889, 1258000]
-  }
-  const response = {
-    ok: true,
-    status: 200,
-    json: () => Promise.resolve(mock),
-  }
+/**
+ * Say we want to purchase "yes" tokens:
+ * y * n = k
+ * x dollars → x "yes", x "no"
+ * (y-δ) * (n+x) = y * n
+ * δ(x) = y - y*n / (n+x) = y*x / (n+x)
+ *
+ * Price p(x) ≔ (x + δ(x)) "yes" / x dollars
+ *
+ * limₓ→₀ p(x)
+ * = 1 + δ(x)/x
+ * = 1 + y/(n+x)
+ * = 1 + y/n
+ */
+export const yesPerDollar = (y: number, n: number) => {
+  return 1 + y/n
+}
 
-  if (!response.ok) {
-    const message = `An error has occured: ${response.status}`;
-    throw new Error(message);
-  }
+export const dollarsPerYes = (y: number, n: number) => {
+  return n/(y+n)
+}
 
-  return await response.json();
-};
+// export const fetchStockDetails = async (stockSymbol: string): Promise<StockDetails> => {
+//   const basePath = "https://finnhub.io/api/v1";
+//   const url = `${basePath}/stock/profile2?symbol=${stockSymbol}&token=ct3iiihr01qrd05j40jgct3iiihr01qrd05j40k0`;
+//   console.log("stock details url ", url)
+//   const response = await fetch(url);
 
-export const fetchStockDetails = async (stockSymbol: string): Promise<StockDetails> => {
-  const basePath = "https://finnhub.io/api/v1";
-  const url = `${basePath}/stock/profile2?symbol=${stockSymbol}&token=ct3iiihr01qrd05j40jgct3iiihr01qrd05j40k0`;
-  console.log("stock details url ", url)
-  const response = await fetch(url);
+//   if (!response.ok) {
+//     const message = `An error has occured: ${response.status}`;
+//     throw new Error(message);
+//   }
 
-  if (!response.ok) {
-    const message = `An error has occured: ${response.status}`;
-    throw new Error(message);
-  }
-
-  return await response.json();
-};
+//   return await response.json();
+// };
 
 export type SymbolSearch = {
   count: number,
@@ -55,33 +60,33 @@ export type SymbolSearch = {
     type: string
   }>
 }
-export const searchSymbol = async (query: string): Promise<SymbolSearch> => {
-  const basePath = "https://finnhub.io/api/v1";
-  const url = `${basePath}/search?q=${query}&token=ct3iiihr01qrd05j40jgct3iiihr01qrd05j40k0`;
-  const response = await fetch(url);
+// export const searchSymbol = async (query: string): Promise<SymbolSearch> => {
+//   const basePath = "https://finnhub.io/api/v1";
+//   const url = `${basePath}/search?q=${query}&token=ct3iiihr01qrd05j40jgct3iiihr01qrd05j40k0`;
+//   const response = await fetch(url);
 
-  if (!response.ok) {
-    const message = `An error has occured: ${response.status}`;
-    throw new Error(message);
-  }
+//   if (!response.ok) {
+//     const message = `An error has occured: ${response.status}`;
+//     throw new Error(message);
+//   }
 
-  return (await response.json()).result;
-};
+//   return (await response.json()).result;
+// };
 
 
-export const fetchQuote = async (stockSymbol: string): Promise<Quote> => {
-  const basePath = "https://finnhub.io/api/v1";
-  const url = `${basePath}/quote?symbol=${stockSymbol}&token=ct3iiihr01qrd05j40jgct3iiihr01qrd05j40k0`;
-  console.log("fetchquote url: ", url)
-  const response = await fetch(url);
+// export const fetchQuote = async (stockSymbol: string): Promise<Quote> => {
+//   const basePath = "https://finnhub.io/api/v1";
+//   const url = `${basePath}/quote?symbol=${stockSymbol}&token=ct3iiihr01qrd05j40jgct3iiihr01qrd05j40k0`;
+//   console.log("fetchquote url: ", url)
+//   const response = await fetch(url);
 
-  if (!response.ok) {
-    const message = `An error has occured: ${response.status}`;
-    throw new Error(message);
-  }
+//   if (!response.ok) {
+//     const message = `An error has occured: ${response.status}`;
+//     throw new Error(message);
+//   }
 
-  return await response.json();
-};
+//   return await response.json();
+// };
 
 export type transactionType = "buy" | "sell"
 export type tokenType = "yes" | "no"
@@ -91,7 +96,7 @@ export const doTransaction = async (
   tokenType: tokenType,
   amount: number,
   apiToken: string,
-  marketId: string
+  marketId: number
 ) => {
   const url = `${serverUrl}/${marketId}/tx`;
   console.log("buying shares in market ", marketId);
@@ -165,6 +170,4 @@ export const login = async (username: string, password: string) => {
     const apiToken = data["data"]["api_key"];
     return apiToken
   }
-
-
 }

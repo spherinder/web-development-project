@@ -1,7 +1,7 @@
-import { Dispatch, SetStateAction, createContext, PropsWithChildren, useContext, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, createContext, PropsWithChildren, useContext, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 
-import {ThemeContext, StockContext, AuthContext, MarketContext } from "../App";
+import { ThemeContext, AuthContext, MarketContext } from "../App";
 import { Card } from "./Card";
 import { useMutation } from "@tanstack/react-query";
 import { login, transactionType, tokenType, doTransaction } from "../api";
@@ -204,12 +204,12 @@ const Amount = ({tradeAmount, setTradeAmount, updateAmount}: {tradeAmount: numbe
 const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: number}) => {
   const { apiToken } = useContext(AuthContext);
   const { transactionType } = useContext(TransactionContext);
-  const { marketId } = useContext(MarketContext);
+  const { market } = useContext(MarketContext);
 
   const navigate = useNavigate();
   const mutation = useMutation({
     mutationFn: (() => executeTransaction(
-      transactionType, tokenType, tradeAmount, apiToken!, marketId
+      transactionType, tokenType, tradeAmount, apiToken!, market?.id ?? 0 // FIXME
     )),
     onSuccess: (_ => {
       console.log("transaction successful");
@@ -254,7 +254,7 @@ const executeTransaction = async (
   type: tokenType,
   amount: number,
   apiToken: string,
-  marketId: string,
+  marketId: number,
 ) => {
   console.log("executing transaction")
   if (amount === 0) {

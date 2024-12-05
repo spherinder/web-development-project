@@ -1,12 +1,12 @@
 import { useContext, useState } from "react";
-import { StockContext, ThemeContext } from "../App";
-import { searchSymbol, SymbolSearch } from "../api";
+import { ThemeContext } from "../App";
+import { SymbolSearch } from "../api";
 import {MagnifyingGlassIcon, MoonIcon, XMarkIcon} from "@heroicons/react/16/solid"
 
 const SearchResults = ({ result }: {result:SymbolSearch["result"]}) => {
   const { darkMode } = useContext(ThemeContext);
 
-  const { setStockSymbol } = useContext(StockContext);
+  // const { setStockSymbol } = useContext(StockContext);
 
   return (
     <ul
@@ -23,7 +23,7 @@ const SearchResults = ({ result }: {result:SymbolSearch["result"]}) => {
             className={`cursor-pointer p-4 m-2 flex items-center justify-between rounded-md ${
               darkMode ? "hover:bg-indigo-600" : "hover:bg-indigo-200 "
             } transition duration-300`}
-            onClick={() => setStockSymbol(item.symbol)}
+            // onClick={() => setStockSymbol(item.symbol)}
           >
             <span>{item.symbol}</span>
             <span>{item.description}</span>
@@ -44,9 +44,9 @@ const Search = () => {
   const updateBestMatches = async () => {
     try {
       if (input) {
-        const searchResults = await searchSymbol(input);
-        const result = searchResults.result;
-        setBestMatches(result);
+        // const searchResults = await searchSymbol(input);
+        // const result = searchResults.result;
+        // setBestMatches(result);
       }
     } catch (error) {
       setBestMatches([]);

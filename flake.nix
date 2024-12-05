@@ -78,6 +78,7 @@
               nodejs
               nodePackages.typescript
               nodePackages.typescript-language-server
+              litecli
             ];
             shellHook = ''
               # Undo dependency propagation by nixpkgs.
