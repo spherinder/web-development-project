@@ -1,8 +1,9 @@
 import unittest
 
+import sqlalchemy
 import json
 from api import create_app, db
-from api.models import PredictionMarket, User
+from api.models import PredictionMarket, User, MarketLiquidity
 
 
 class UserModelCase(unittest.TestCase):
@@ -118,6 +119,23 @@ class TestMarket(unittest.TestCase):
             PredictionMarket.name == "Will more than 30 people get a 6.0 in DM?"
         ).first_or_404()
         self.assertEqual(market.description, "Resolves on DATE")
+
+    # FIXME This should fail
+    def test_market_liquidity_invalid_market_id(self):
+        with self.assertRaises(sqlalchemy.exc.IntegrityError):
+            n = 100
+            market_id = 99
+            market_liquidity = MarketLiquidity(
+                market_id=market_id, yes_liquidity=n, no_liquidity=n
+            )
+            db.session.add(market_liquidity)
+            db.session.commit()
+
+            liquidity: MarketLiquidity = MarketLiquidity.query.filter(
+                MarketLiquidity.market_id == market_id
+            ).first_or_404()
+            self.assertEqual(liquidity.yes_liquidity, n)
+            self.assertEqual(liquidity.no_liquidity, n)
 
 
 class TestUser(unittest.TestCase):
