@@ -1,9 +1,10 @@
 from api.models import User
 from extensions import db
-from flask import Blueprint, request
+from flask import Blueprint
 import secrets
 import sqlalchemy as sa
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
+from flask_pydantic import validate
 
 auth_blueprint = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -13,27 +14,18 @@ class RegisterReq(BaseModel):
     password: str
 
 @auth_blueprint.post("/register")
-def register():
+@validate()
+def register(body: RegisterReq):
     api_key = secrets.token_urlsafe(32)
     # todo: input sanitisation
     # todo: fail gracefully with missing data
-
-    try:
-        json = RegisterReq.model_validate(request.get_json())
-    except ValidationError as e:
-        return ({
-            "status": "error",
-            "msg": "Invalid input",
-            "error": e.errors()
-        }, 400)
-
     user = User(
-        username=json.username,
-        email=json.email,
+        username=body.username,
+        email=body.email,
         api_key=api_key,
         is_superuser=False,
     )
-    user.set_password(json.password)
+    user.set_password(body.password)
     db.session.add(user)
     db.session.commit()
 
@@ -44,19 +36,13 @@ class LoginReq(BaseModel):
     password: str
 
 @auth_blueprint.post("/login")
-def login():
-    json = request.get_json()
-    # try:
-    #     json = RegisterReq.model_validate(request.get_json())
-    # except ValidationError as e:
-    #     return ({
-    #         "status": "error",
-    #         "msg": "Invalid input",
-    #         "error": e.errors()
-    #     }, 400)
-
-    user = db.session.scalar(sa.select(User).where(User.username == json['username']))
-    if user is None or not user.check_password(json['password']):
+@validate()
+def login(body: LoginReq):
+    user = db.session.scalar(sa.select(User).where(User.username == body.username))
+    print("user ", user)
+    if user is not None:
+        print("check ", user.check_password(body.password))
+    if user is None or not user.check_password(body.password):
         return {
             "status": "err",
             "msg": "Error: invalid username or password.",
