@@ -5,8 +5,7 @@ import json
 from api import create_app, db
 from api.models import PredictionMarket, User, MarketLiquidity
 
-
-class UserModelCase(unittest.TestCase):
+class ServerTest(unittest.TestCase):
     def setUp(self):
         app = create_app()
         self.client = app.test_client()
@@ -19,6 +18,7 @@ class UserModelCase(unittest.TestCase):
         db.drop_all()
         self.app_context.pop()
 
+class UserModelCase(ServerTest):
     def test_password_hashing(self):
         u = User(username="susan", email="susan@example.com")
         u.set_password("cat")
@@ -78,19 +78,7 @@ class UserModelCase(unittest.TestCase):
         self.assertEqual(response.status_code, 403)
 
 
-class TestMarket(unittest.TestCase):
-    def setUp(self):
-        app = create_app()
-        self.client = app.test_client()
-        self.app_context = app.app_context()
-        self.app_context.push()
-        db.create_all()
-
-    def tearDown(self):
-        db.session.remove()
-        db.drop_all()
-        self.app_context.pop()
-
+class TestMarket(ServerTest):
     def test_market(self):
         user = User(
             username="user",
@@ -138,19 +126,7 @@ class TestMarket(unittest.TestCase):
             self.assertEqual(liquidity.no_liquidity, n)
 
 
-class TestUser(unittest.TestCase):
-    def setUp(self):
-        app = create_app()
-        self.client = app.test_client()
-        self.app_context = app.app_context()
-        self.app_context.push()
-        db.create_all()
-
-    def tearDown(self):
-        db.session.remove()
-        db.drop_all()
-        self.app_context.pop()
-
+class TestUser(ServerTest):
     def test_get_user(self):
         user = User(
             username="user",
