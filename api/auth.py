@@ -4,7 +4,7 @@ from flask import Blueprint
 import secrets
 import sqlalchemy as sa
 from pydantic import BaseModel
-from flask_pydantic import validate
+from flask_pydantic import validate # pyright: ignore[reportMissingTypeStubs, reportUnknownVariableType]
 
 auth_blueprint = Blueprint("auth", __name__, url_prefix="/auth")
 
