@@ -5,7 +5,7 @@ import { ThemeContext, AuthContext, MarketContext } from "../App";
 import { Card } from "./Card";
 import { useMutation } from "@tanstack/react-query";
 import { login, transactionType, tokenType, doTransaction } from "../api";
-
+import { capitalize } from "../utils";
 
 const initTransactionType = {
   transactionType: "buy" as transactionType,
@@ -70,10 +70,6 @@ const Header = () => {
 
 const HeaderButton = ({type}: {type: transactionType}) => {
   const { transactionType, setTransactionType } = useContext(TransactionContext);
-
-  const capitalize = (str: string): string => {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
 
   return (
       <button onClick={() => setTransactionType(type)}
