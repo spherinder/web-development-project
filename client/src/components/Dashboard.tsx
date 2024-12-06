@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import {ThemeContext} from "../App";
+import {MarketContext, ThemeContext} from "../App";
 import { Chart } from "./Chart";
 // import { fetchQuote, fetchStockDetails } from "../api";
 import { Header } from "./Header";
@@ -60,18 +60,18 @@ import { Card } from "./Card";
 // };
 
 type OverviewProps = {
-  symbol: string,
+  marketName: string,
   price: number,
   change: number,
   changePercent: number,
   currency: string
 }
 
-const Overview = ({ symbol, price, change, changePercent, currency }: OverviewProps) => {
+const Overview = ({ marketName, price, change, changePercent, currency }: OverviewProps) => {
   return (
     <Card>
       <span className="absolute left-4 top-4 text-neutral-400 text-lg xl:text-xl 2xl:text-2xl">
-        {symbol}
+        {marketName}
       </span>
       <div className="w-full h-full flex items-center justify-around">
         <span className="text-2xl xl:text-4xl 2xl:text-5xl flex items-center">
@@ -94,6 +94,7 @@ const Overview = ({ symbol, price, change, changePercent, currency }: OverviewPr
 
 export const Dashboard = () => {
   const { darkMode } = useContext(ThemeContext);
+  const { market } = useContext(MarketContext)
 
   // const {status: detailStatus, data: stockDetails} = useQuery({
   //   queryKey: ["stockDetails", stockSymbol],
@@ -127,7 +128,7 @@ export const Dashboard = () => {
           currency={stockDetails?.currency ?? ""}
         />*/}
         <Overview
-          symbol={"foobar"}
+          marketName={market?.name ?? "sus"}
           price={0}
           change={0}
           changePercent={0}

@@ -26,9 +26,6 @@ type Market = {
   name: string,
   desc: string,
   created_at: string,
-  yes_liquidity: number,
-  no_liquidity: number,
-  modified: string,
 }
 
 const initMarket = {
@@ -40,7 +37,12 @@ export const MarketContext = createContext(initMarket);
 const App = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [apiToken, setApiToken] = useState<string|null>(null);
-  const [market, setMarketId] = useState<Market|null>(null);
+  const [market, setMarketId] = useState<Market|null>({
+    id: 1,
+    name: "Default",
+    desc: "this is market",
+    created_at: new Date().toISOString(),
+  });
 
   return (
     <AuthContext.Provider value={{ apiToken, setApiToken }}>
