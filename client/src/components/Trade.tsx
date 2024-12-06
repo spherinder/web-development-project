@@ -205,7 +205,7 @@ const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: n
   const navigate = useNavigate();
   const mutation = useMutation({
     mutationFn: (() => executeTransaction(
-      transactionType, tokenType, tradeAmount, apiToken!, market?.id ?? 0 // FIXME
+      transactionType, tokenType, tradeAmount, apiToken!, market?.id ?? 1 // FIXME
     )),
     onSuccess: (_ => {
       console.log("transaction successful");

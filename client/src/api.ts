@@ -98,14 +98,16 @@ export const doTransaction = async (
   apiToken: string,
   marketId: number
 ) => {
-  const url = `${serverUrl}/${marketId}/tx`;
+  const url = `${serverUrl}/market/${marketId}/tx`;
   console.log("buying shares in market ", marketId);
 
   const response = await fetch(url, {
     method: "POST",
+    mode: "cors",
+    credentials: 'include',
     body: JSON.stringify({
       kind: `${kind}[${tokenType}]`,
-      dollars: amount
+      amount: amount
     }),
     headers: {
       "x-api-key": apiToken,
