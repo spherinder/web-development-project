@@ -116,7 +116,7 @@ const Button = ({type, selectedButton, onClick}: {
   const price = 0;
   const currentSelected = type === selectedButton();
   const buttonColor = type === "yes" ? "#27AE60" : "#E64800";
-
+  const { transactionType } = useContext(TransactionContext);
   return (
     <button className="trade-button" onClick={() => onClick(type)}
       style={{
@@ -125,7 +125,7 @@ const Button = ({type, selectedButton, onClick}: {
         height: "50px",
 
       }}>
-      Buy {type} for Ð{price}
+      {capitalize(transactionType)} {type} for Ð{price}
     </button>
   )
 }
