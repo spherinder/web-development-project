@@ -81,7 +81,7 @@ export const Chart = () => {
 
 
   const {status, error: _, data} = useQuery({
-    queryKey: ["liquidityHistory", market?.id],
+    queryKey: ["liquidityHistory", market?.id ?? 1], // FIXME
     queryFn: () => {
       return fetchLiquidityHistory(market?.id ?? 1); // FIXME
     }

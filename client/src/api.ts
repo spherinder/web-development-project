@@ -112,7 +112,7 @@ export const doTransaction = async (
   marketId: number
 ) => {
   const url = `${serverUrl}/market/${marketId}/tx`;
-  console.log("buying shares in market ", marketId);
+  console.log(`${kind}ing ${tokenType} in market `, marketId);
 
   const response = await fetch(url, {
     method: "POST",

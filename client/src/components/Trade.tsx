@@ -223,6 +223,7 @@ const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: n
     onSuccess: (_ => {
       console.log("transaction successful");
       queryClient.invalidateQueries({ queryKey: ["liquidityHistory", market?.id ?? 1] });
+      queryClient.invalidateQueries({ queryKey: ["marketInfo"] });
     })
   });
 

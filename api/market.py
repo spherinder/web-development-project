@@ -41,7 +41,7 @@ def change_balance(is_yes: bool, market_id: int, balance: UserBalance, tok1_diff
         market_id=market_id,
         dog_balance=dog_amount,
         yes_balance=balance.yes_balance + tok1_diff if is_yes else balance.yes_balance + tok2_diff,
-        no_balance=balance.no_balance + tok1_diff if is_yes else balance.no_balance + tok2_diff
+        no_balance=balance.no_balance + tok2_diff if is_yes else balance.no_balance + tok1_diff
     )
 
 def change_liquidity(is_yes: bool, liq: MarketLiquidity, tok1_diff: float = 0, tok2_diff: float = 0):
@@ -219,12 +219,10 @@ class TxReq(BaseModel):
 @require_api_key
 @validate()
 def do_transaction(market_id: int, body: TxReq):
-    print("foobar", market_id)
     market: PredictionMarket = PredictionMarket.query.filter(
         PredictionMarket.id == market_id,
         PredictionMarket.resolved == False
     ).first_or_404()
-    print("foo")
     user = g_user()
 
     is_yes = body.kind == "buy[yes]" or body.kind == "sell[yes]"
@@ -235,7 +233,6 @@ def do_transaction(market_id: int, body: TxReq):
     else:
         sell(is_yes, body.amount, market, user)
 
-    print("foo2")
     return {"status": "ok", "msg": "Purchased" if is_buy else "Sold", "data": None}
 
 @market_blueprint.post("/<market_id>/resolve")
