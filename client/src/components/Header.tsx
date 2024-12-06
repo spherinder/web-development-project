@@ -2,6 +2,8 @@ import { useContext, useState } from "react";
 import { ThemeContext } from "../App";
 import { SymbolSearch } from "../api";
 import {MagnifyingGlassIcon, MoonIcon, XMarkIcon} from "@heroicons/react/16/solid"
+import { useNavigate } from 'react-router-dom';
+import { capitalize } from "../utils";
 
 const SearchResults = ({ result }: {result:SymbolSearch["result"]}) => {
   const { darkMode } = useContext(ThemeContext);
@@ -122,6 +124,24 @@ const ThemeIcon = () => {
   );
 };
 
+type AuthAction = "login" | "register"
+
+const AuthButton = ({action} : {action: AuthAction}) => {
+  const navigate = useNavigate();
+  return (
+  <button onClick={() => navigate(`/${action}`)}
+    style={{
+      width: "100px",
+      height: "40px",
+      textAlign: "center",
+      backgroundColor: "#2D9CDB",
+      margin: "10px",
+    }}>
+    {capitalize(action)}
+  </button>
+  )
+}
+
 export const Header = ({ name }:{name:string}) => {
   return (
     <>
@@ -129,7 +149,13 @@ export const Header = ({ name }:{name:string}) => {
         <h1 className="text-5xl">{name}</h1>
         <Search />
       </div>
-      <ThemeIcon />
+
+      <div style={{display: "flex", justifyContent: "flex-end"}}
+            /* TODO: Better placement */>
+        <AuthButton action="register"/>
+        <AuthButton action="login"/>
+        <ThemeIcon />
+      </div>
     </>
   );
 };
