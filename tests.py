@@ -15,6 +15,20 @@ class ServerTest(unittest.TestCase):
         db.create_all()
         db.session.commit()
 
+
+        market = PredictionMarket(
+            name="Default market", description="Default market"
+        )
+        db.session.add(market)
+        db.session.commit()
+
+        liquidity = MarketLiquidity(
+            market_id=market.id, yes_liquidity=420, no_liquidity=69
+        )
+        db.session.add(liquidity)
+        db.session.commit()
+
+
     def tearDown(self):
         db.session.remove()
         db.drop_all()
