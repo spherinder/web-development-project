@@ -1,5 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
+from sqlite3 import Connection
+from sqlalchemy.pool.base import _ConnectionRecord # pyright: ignore[reportPrivateUsage]
 from config import Config
 from extensions import db, migrate
 
@@ -11,8 +13,8 @@ def create_app(config_class: type[Config] = Config):
     migrate.init_app(app, db)
 
     if 'sqlite' in app.config['SQLALCHEMY_DATABASE_URI']:
-        def _fk_pragma_on_connect(dbapi_con, con_record):  # noqa
-            dbapi_con.execute('pragma foreign_keys=ON')
+        def _fk_pragma_on_connect(dbapi_con: Connection, _con_record: _ConnectionRecord):
+            _ = dbapi_con.execute("pragma foreign_keys=ON")
 
         with app.app_context():
             from sqlalchemy import event
