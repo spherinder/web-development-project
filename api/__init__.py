@@ -2,10 +2,10 @@ from flask import Flask
 from flask_cors import CORS
 from sqlite3 import Connection
 from sqlalchemy.pool.base import _ConnectionRecord # pyright: ignore[reportPrivateUsage]
-from config import Config
+from config import Config, TestConfig
 from extensions import db, migrate
 
-def create_app(config_class: type[Config] = Config):
+def create_app(config_class: type[Config | TestConfig] = Config):
     app = Flask(__name__)
     _ = CORS(app, supports_credentials=True)
     app.config.from_object(config_class)

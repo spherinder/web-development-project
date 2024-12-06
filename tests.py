@@ -4,14 +4,16 @@ import sqlalchemy
 import json
 from api import create_app, db
 from api.models import PredictionMarket, User, MarketLiquidity
+from config import TestConfig
 
 class ServerTest(unittest.TestCase):
     def setUp(self):
-        app = create_app()
+        app = create_app(TestConfig)
         self.client = app.test_client()
         self.app_context = app.app_context()
         self.app_context.push()
         db.create_all()
+        db.session.commit()
 
     def tearDown(self):
         db.session.remove()
