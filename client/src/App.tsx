@@ -16,8 +16,8 @@ const initTheme = {
 export const ThemeContext = createContext(initTheme);
 
 const initAuth = {
-  apiToken: null,
-  setApiToken: (() => {throw new Error("wont happen")}) as Dispatch<SetStateAction<any>>,
+  apiToken: null as string|null,
+  setApiToken: (() => {throw new Error("wont happen")}) as Dispatch<SetStateAction<string | null>>,
 }
 export const AuthContext = createContext(initAuth);
 
@@ -39,7 +39,7 @@ export const MarketContext = createContext(initMarket);
 
 const App = () => {
   const [darkMode, setDarkMode] = useState(false);
-  const [apiToken, setApiToken] = useState(null);
+  const [apiToken, setApiToken] = useState<string|null>(null);
   const [market, setMarketId] = useState<Market|null>(null);
 
   return (

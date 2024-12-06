@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import { ThemeContext } from "../App";
+import { AuthContext, ThemeContext } from "../App";
 import { SymbolSearch } from "../api";
 import {MagnifyingGlassIcon, MoonIcon, XMarkIcon} from "@heroicons/react/16/solid"
 import { useNavigate } from 'react-router-dom';
@@ -73,7 +73,7 @@ const Search = () => {
         className={`w-full px-4 py-2 focus:outline-none rounded-md ${
           darkMode ? "bg-gray-900" : null
         }`}
-        placeholder="Search stock..."
+        placeholder="Search markets..."
         onChange={(event) => setInput(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
@@ -143,6 +143,8 @@ const AuthButton = ({action} : {action: AuthAction}) => {
 }
 
 export const Header = ({ name }:{name:string}) => {
+  const {apiToken} = useContext(AuthContext)
+
   return (
     <>
       <div className="xl:px-32">
@@ -152,8 +154,12 @@ export const Header = ({ name }:{name:string}) => {
 
       <div style={{display: "flex", justifyContent: "flex-end"}}
             /* TODO: Better placement */>
-        <AuthButton action="register"/>
-        <AuthButton action="login"/>
+        {apiToken === null ? (
+          <>
+          <AuthButton action="register"/>
+          <AuthButton action="login"/>
+          </>
+        ) : <></>}
         <ThemeIcon />
       </div>
     </>
