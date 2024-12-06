@@ -214,7 +214,8 @@ class TxReq(BaseModel):
 @validate()
 def do_transaction(market_id: int, body: TxReq):
     market: PredictionMarket = PredictionMarket.query.filter(
-        PredictionMarket.id == market_id
+        PredictionMarket.id == market_id,
+        PredictionMarket.resolved == False
     ).first_or_404()
     user = g_user()
 
@@ -227,3 +228,22 @@ def do_transaction(market_id: int, body: TxReq):
         sell(is_yes, body.amount, market, user)
 
     return {"status": "ok", "msg": "Purchased" if is_buy else "Sold", "data": None}
+
+@market_blueprint.post("/<market_id>/resolve")
+@require_api_key
+def resolve(market_id: int):
+    user = g_user()
+    if not user.is_superuser:
+        return {
+            "status": "err",
+            "msg": "Only super users can resolve markets",
+            "data": None,
+        }, 403
+
+    market: PredictionMarket = PredictionMarket.query.filter(
+        PredictionMarket.id == market_id
+    ).first_or_404()
+
+    market.resolved = True
+    db.session.commit()
+    return {"status": "ok", "msg": "Resolved market"}

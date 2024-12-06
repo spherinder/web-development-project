@@ -18,6 +18,19 @@ class ServerTest(unittest.TestCase):
         db.drop_all()
         self.app_context.pop()
 
+    def _create_super_user(self) -> User:
+        user = User(
+            username="user",
+            email="user@example.com",
+            api_key="somerandomapistring",
+            is_superuser=True,
+        )
+        user.set_password(
+            "03598da1bde6d0b536ebb13df1a44b08a734498f6ade19ae0017c8cae0d896c7"
+        )
+        db.session.add(user)
+        return user
+
 class UserModelCase(ServerTest):
     def test_password_hashing(self):
         u = User(username="susan", email="susan@example.com")
@@ -79,17 +92,9 @@ class UserModelCase(ServerTest):
 
 
 class TestMarket(ServerTest):
+
     def test_market(self):
-        user = User(
-            username="user",
-            email="user@example.com",
-            api_key="somerandomapistring",
-            is_superuser=True,
-        )
-        user.set_password(
-            "03598da1bde6d0b536ebb13df1a44b08a734498f6ade19ae0017c8cae0d896c7"
-        )
-        db.session.add(user)
+        _ = self._create_super_user()
         response = self.client.post(
             "/market/create",
             data=json.dumps(
@@ -108,7 +113,6 @@ class TestMarket(ServerTest):
         ).first_or_404()
         self.assertEqual(market.description, "Resolves on DATE")
 
-    # FIXME This should fail
     def test_market_liquidity_invalid_market_id(self):
         with self.assertRaises(sqlalchemy.exc.IntegrityError):
             n = 100
@@ -119,25 +123,66 @@ class TestMarket(ServerTest):
             db.session.add(market_liquidity)
             db.session.commit()
 
-            liquidity: MarketLiquidity = MarketLiquidity.query.filter(
-                MarketLiquidity.market_id == market_id
-            ).first_or_404()
-            self.assertEqual(liquidity.yes_liquidity, n)
-            self.assertEqual(liquidity.no_liquidity, n)
+    def test_market_liquidity_valid_market_id(self):
+        market: PredictionMarket = PredictionMarket(
+            name="Dummy market name",
+            description="Dummy maket description"
+        )
+        db.session.add(market)
+        db.session.commit()
+
+        n = 100
+        market_id = market.id
+        market_liquidity = MarketLiquidity(
+            market_id=market_id, yes_liquidity=n, no_liquidity=n
+        )
+        db.session.add(market_liquidity)
+        db.session.commit()
+
+        liquidity: MarketLiquidity = MarketLiquidity.query.filter(
+            MarketLiquidity.market_id == market_id
+        ).first_or_404()
+        self.assertEqual(liquidity.yes_liquidity, n)
+        self.assertEqual(liquidity.no_liquidity, n)
+
+    def test_market_resolve(self):
+        _ = self._create_super_user()
+        self.client.post(
+            "/market/create",
+            data=json.dumps(
+                {
+                    "name": "Will the average grade in NumCS be above 5?",
+                    "description": "Resolves on DATE",
+                }
+            ),
+            headers={"x-api-key": "somerandomapistring"},
+            content_type="application/json",
+        )
+        response = self.client.post(
+            "/market/1/resolve",
+            headers={"x-api-key": "somerandomapistring"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # After a market has been resolved, one cannot buy/sell anymore
+        response = self.client.post(
+            "/market/1/tx",
+            data=json.dumps(
+                {
+                    "amount": 1,
+                    "kind": "buy[yes]"
+                    }
+            ),
+            headers={"x-api-key": "somerandomapistring"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 404)
 
 
 class TestUser(ServerTest):
     def test_get_user(self):
-        user = User(
-            username="user",
-            email="user@example.com",
-            api_key="somerandomapistring",
-            is_superuser=True,
-        )
-        user.set_password(
-            "03598da1bde6d0b536ebb13df1a44b08a734498f6ade19ae0017c8cae0d896c7"
-        )
-        db.session.add(user)
+        user = self._create_super_user()
         response = self.client.get(
             "/user/",
             headers={"x-api-key": "somerandomapistring"},

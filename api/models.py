@@ -50,6 +50,9 @@ class PredictionMarket(db.Model):
     created_at: so.Mapped[datetime.datetime] = so.mapped_column(
         index=True, default=lambda: datetime.datetime.now(datetime.timezone.utc)
     )
+    resolved: so.Mapped[bool] = so.mapped_column(
+        default=lambda: False, nullable=False
+    )
 
 @dataclass
 class MarketLiquidity(db.Model):
