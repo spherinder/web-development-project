@@ -19,7 +19,8 @@ def register(body: RegisterReq):
     api_key = secrets.token_urlsafe(32)
     # todo: input sanitisation
     # todo: fail gracefully with missing data
-    # todo: check username doesnt already exist
+    if User.query.filter(User.username == body.username).first():
+        return { "status": "err", "msg": "Duplicate username", "data": None }, 409
     user = User(
         username=body.username,
         email=body.email,
