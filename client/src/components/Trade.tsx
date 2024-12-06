@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 
 import { ThemeContext, AuthContext, MarketContext } from "../App";
 import { Card } from "./Card";
-import { useMutation } from "@tanstack/react-query";
-import { login, transactionType, tokenType, doTransaction } from "../api";
+import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { login, transactionType, tokenType, doTransaction, dollarsPerYes, fetchMarketInfo } from "../api";
 import { capitalize } from "../utils";
 
 const initTransactionType = {
@@ -113,10 +113,22 @@ const Button = ({type, selectedButton, onClick}: {
   selectedButton: Function,
   onClick: Function
 }) => {
-  const price = 0;
+  const {market} = useContext(MarketContext)
+  const { transactionType } = useContext(TransactionContext);
+  const {status, error: _, data} = useQuery({
+    queryKey: ["marketInfo", market?.id],
+    queryFn: () => {
+      return fetchMarketInfo(market?.id ?? 1); // FIXME
+    }
+  })
+  if (status !== "success") {
+    return <>Loading..</> // TODO
+  }
+
+  const yesPrice = dollarsPerYes(data.yes_liquidity, data.no_liquidity)
+  const price = type === "yes" ? yesPrice : 1-yesPrice
   const currentSelected = type === selectedButton();
   const buttonColor = type === "yes" ? "#27AE60" : "#E64800";
-  const { transactionType } = useContext(TransactionContext);
   return (
     <button className="trade-button" onClick={() => onClick(type)}
       style={{
@@ -125,7 +137,7 @@ const Button = ({type, selectedButton, onClick}: {
         height: "50px",
 
       }}>
-      {capitalize(transactionType)} {type} for Ð{price}
+      {capitalize(transactionType)} {type} for Ð{price.toFixed(2)}
     </button>
   )
 }
@@ -202,6 +214,7 @@ const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: n
   const { transactionType } = useContext(TransactionContext);
   const { market } = useContext(MarketContext);
 
+  const queryClient = useQueryClient()
   const navigate = useNavigate();
   const mutation = useMutation({
     mutationFn: (() => executeTransaction(
@@ -209,6 +222,7 @@ const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: n
     )),
     onSuccess: (_ => {
       console.log("transaction successful");
+      queryClient.invalidateQueries({ queryKey: ["liquidityHistory", market?.id ?? 1] });
     })
   });
 

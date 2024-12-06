@@ -35,20 +35,20 @@ def create_market():
 
     return {"status": "ok", "msg": "Created that market", "data": market}
 
-def change_balance(is_yes: bool, market_id: int, user: UserBalance, tok1_diff: float = 0, tok2_diff: float = 0, dog_amount: float = 0):
+def change_balance(is_yes: bool, market_id: int, balance: UserBalance, tok1_diff: float = 0, tok2_diff: float = 0, dog_amount: float = 0):
     return UserBalance(
-        user_id=user.id,
+        user_id=balance.user_id,
         market_id=market_id,
         dog_balance=dog_amount,
-        yes_balance=user.yes_balance + tok1_diff if is_yes else user.yes_balance + tok2_diff,
-        no_balance=user.no_balance + tok1_diff if is_yes else user.no_balance + tok2_diff
+        yes_balance=balance.yes_balance + tok1_diff if is_yes else balance.yes_balance + tok2_diff,
+        no_balance=balance.no_balance + tok1_diff if is_yes else balance.no_balance + tok2_diff
     )
 
-def change_liquidity(is_yes: bool, market: MarketLiquidity, tok1_diff: float = 0, tok2_diff: float = 0):
+def change_liquidity(is_yes: bool, liq: MarketLiquidity, tok1_diff: float = 0, tok2_diff: float = 0):
     return MarketLiquidity(
-        market_id=market.id,
-        yes_liquidity=market.yes_liquidity + tok1_diff if is_yes else market.yes_liquidity + tok2_diff,
-        no_liquidity=market.no_liquidity + tok2_diff if is_yes else market.no_liquidity + tok1_diff,
+        market_id=liq.market_id,
+        yes_liquidity=liq.yes_liquidity + tok1_diff if is_yes else liq.yes_liquidity + tok2_diff,
+        no_liquidity=liq.no_liquidity + tok2_diff if is_yes else liq.no_liquidity + tok1_diff,
     )
 
 def purchase(is_yes: bool, dollar_amount: float, market: PredictionMarket, user: User):
@@ -82,20 +82,26 @@ def purchase(is_yes: bool, dollar_amount: float, market: PredictionMarket, user:
 
     db.session.add(new_liquidity)
 
-    dog_balance: float = cast(
-        UserBalance,
+    latest_balance = cast(UserBalance | None,
         UserBalance.query.filter(UserBalance.user_id == user.id)
         .order_by(UserBalance.timestamp.desc())
-        .first_or_404()
-    ).dog_balance
+        .first()
+    )
+    dog_balance: float = latest_balance.dog_balance if latest_balance is not None else 0
 
-    tok_balance: UserBalance = (
+    existing_tok_balance = cast(
+        UserBalance | None,
         UserBalance.query.filter(
             and_(UserBalance.user_id == user.id, MarketLiquidity.market_id == market.id)
         )
         .order_by(UserBalance.timestamp.desc())
-        .first_or_404()
+        .first()
     )
+
+    if existing_tok_balance is None:
+        print(f"found no existing balance for {user.id} {market.id}")
+
+    tok_balance = existing_tok_balance or UserBalance(market_id=market.id, user_id=user.id, yes_balance=0, no_balance=0, dog_balance=dog_balance)
     new_balance = change_balance(is_yes, market.id, tok_balance, dollar_amount + delta, 0, dog_balance-dollar_amount)
 
     db.session.add(new_balance)
@@ -213,10 +219,12 @@ class TxReq(BaseModel):
 @require_api_key
 @validate()
 def do_transaction(market_id: int, body: TxReq):
+    print("foobar", market_id)
     market: PredictionMarket = PredictionMarket.query.filter(
         PredictionMarket.id == market_id,
         PredictionMarket.resolved == False
     ).first_or_404()
+    print("foo")
     user = g_user()
 
     is_yes = body.kind == "buy[yes]" or body.kind == "sell[yes]"
@@ -227,6 +235,7 @@ def do_transaction(market_id: int, body: TxReq):
     else:
         sell(is_yes, body.amount, market, user)
 
+    print("foo2")
     return {"status": "ok", "msg": "Purchased" if is_buy else "Sold", "data": None}
 
 @market_blueprint.post("/<market_id>/resolve")

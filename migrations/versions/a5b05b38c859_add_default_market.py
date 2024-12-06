@@ -28,7 +28,7 @@ def upgrade():
         session.commit()
 
         liquidity = MarketLiquidity(
-            market_id=market.id, yes_liquidity=42096, no_liquidity=42096
+            market_id=market.id, yes_liquidity=420, no_liquidity=69
         )
         session.add(liquidity)
         session.commit()

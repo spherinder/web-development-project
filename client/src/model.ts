@@ -32,3 +32,14 @@ export type LiquidityHistory = Array<{
     no_liquidity: number
     timestamp: string
 }>
+
+
+export type MarketInfo = {
+  id: number,
+  name: string,
+  description: string,
+  created_at: string,
+  yes_liquidity: number,
+  no_liquidity: number,
+  modified: string,
+}

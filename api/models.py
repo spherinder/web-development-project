@@ -51,7 +51,7 @@ class PredictionMarket(db.Model):
         index=True, default=lambda: datetime.datetime.now(datetime.timezone.utc)
     )
     resolved: so.Mapped[bool] = so.mapped_column(
-        default=lambda: False, nullable=False
+        default=False, nullable=False
     )
 
 @dataclass

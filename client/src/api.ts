@@ -1,4 +1,4 @@
-import { LiquidityHistory } from "./model";
+import { LiquidityHistory, MarketInfo } from "./model";
 
 export const serverUrl = "http://localhost:4000";
 
@@ -10,7 +10,20 @@ export const fetchLiquidityHistory = async (
   const json = await response.json()
 
   if (!response.ok) {
-    throw new Error(`Error when buying shares: ${response.status}`);
+    throw new Error(`Error when fetching liquidity history: ${response.status}`);
+  }
+  return json.data
+}
+
+export const fetchMarketInfo = async (
+  marketId: number
+): Promise<MarketInfo> => {
+
+  const response = await fetch(`${serverUrl}/market/${marketId}`)
+  const json = await response.json()
+
+  if (!response.ok) {
+    throw new Error(`Error when fetching market info: ${response.status}`);
   }
   return json.data
 }

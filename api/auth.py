@@ -1,4 +1,4 @@
-from api.models import User
+from api.models import User, UserBalance
 from extensions import db
 from flask import Blueprint
 import secrets
@@ -28,7 +28,11 @@ def register(body: RegisterReq):
         is_superuser=False,
     )
     user.set_password(body.password)
+
     db.session.add(user)
+    db.session.commit()
+    init_balance = UserBalance(dog_balance=100_000, yes_balance=0, no_balance=0, user_id=user.id, market_id=1)
+    db.session.add(init_balance)
     db.session.commit()
 
     return {"status": "ok", "msg": "Created that user", "data": None}
