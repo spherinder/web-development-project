@@ -208,7 +208,11 @@ def get_liquidity_history(market_id: int) -> dict[str,Any]:
 
     return {
         "status": "ok",
-        "data": liquidities
+        "data": [{
+            "yes_liquidity": l.yes_liquidity,
+            "no_liquidity": l.no_liquidity,
+            "timestamp": l.timestamp.isoformat(),
+        } for l in liquidities]
     }
 
 class TxReq(BaseModel):

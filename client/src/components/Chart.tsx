@@ -1,27 +1,11 @@
 import { MouseEventHandler, useContext, useState } from "react";
-import { AuthContext, MarketContext, ThemeContext } from "../App";
+import { MarketContext, ThemeContext } from "../App";
 import { Card } from "./Card";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartSpan, LiquidityHistory } from "../model";
-import {curveCardinal} from "d3-shape"
+import { curveMonotoneX } from "d3-shape"
 import { useQuery } from "@tanstack/react-query";
 import { dollarsPerYes, fetchLiquidityHistory } from "../api";
-
-const convertUnixTimestampToDate = (unixTimestamp: number): string => {
-  const milliseconds = unixTimestamp * 1000;
-  return new Date(milliseconds).toLocaleDateString();
-};
-
-const convertDateToUnixTimestamp = (date: Date) => {
-  return Math.floor(date.getTime() / 1000);
-};
-
-const chartConfig: Record<ChartSpan,{resolution: string,days:number,weeks:number,months:number,years:number}> = {
-  "1D": { resolution: "1", days: 1, weeks: 0, months: 0, years: 0 },
-  "1W": { resolution: "15", days: 0, weeks: 1, months: 0, years: 0 },
-  "1M": { resolution: "60", days: 0, weeks: 0, months: 1, years: 0 },
-  "1Y": { resolution: "D", days: 0, weeks: 0, months: 0, years: 1 },
-};
 
 type ChartFilterProps = {
   text: string,
@@ -44,41 +28,50 @@ const ChartFilter = ({ text, active, onClick }: ChartFilterProps) => {
   );
 };
 
+const find = <T,>(arr: T[], pred: (_: T) => boolean): number => {
+  for (let i=0;i<arr.length;i++) {
+    if (pred(arr[i])) {
+      return i
+    }
+  }
+  return arr.length;
+}
 
-const getDateRange = (filter: ChartSpan) => {
-  const { days, weeks, months, years } = chartConfig[filter];
+const MS_PER_DAY = 24 * 60 * 60 * 1000
 
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() + days + 7 * weeks);
-  startDate.setMonth(startDate.getMonth() + months);
-  startDate.setFullYear(startDate.getFullYear() + years);
+const ms_per_period: Record<ChartSpan, number> = {
+  "1H": 60 * 60 * 1000,
+  "1D": MS_PER_DAY,
+  "1W": 7 * MS_PER_DAY,
+  "1M": 30 * MS_PER_DAY,
+  "1Y": 365 * MS_PER_DAY,
+}
 
-  const startTimestampUnix = convertDateToUnixTimestamp(startDate);
-  const endTimestampUnix = convertDateToUnixTimestamp(endDate);
-  return { startTimestampUnix, endTimestampUnix };
-};
+const formatUnixMilli = (ms:number) => new Date(ms).toLocaleString(undefined, {
+  hour: '2-digit',
+  minute: '2-digit',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
 
-
-const formatData = (data: LiquidityHistory) => {
-  return data.map(({yes_liquidity: y, no_liquidity: n, timestamp}) => {
-    const price = dollarsPerYes(y,n);
+const narrowPriceHistory = (data: LiquidityHistory, span: ChartSpan) => {
+  return data.slice(find(data, ({timestamp}) =>
+    new Date(timestamp).getTime() >= Date.now() - ms_per_period[span]
+  )).map(({yes_liquidity: y, no_liquidity: n, timestamp}) => {
+      const price = dollarsPerYes(y,n);
       return {
         "¥ price": price.toFixed(2),
         "₦ price": (1-price).toFixed(2),
-        date: timestamp,
-        // date: convertUnixTimestampToDate(data.t[index]),
+        date: new Date(timestamp).getTime(),
       };
-  });
+  })
 };
 
 export const Chart = () => {
-  const [filter, setFilter] = useState<ChartSpan>("1W");
-
+  const [span, setSpan] = useState<ChartSpan>("1W");
   const { darkMode } = useContext(ThemeContext);
-
   const { market } = useContext(MarketContext);
-
 
   const {status, error: _, data} = useQuery({
     queryKey: ["liquidityHistory", market?.id ?? 1], // FIXME
@@ -109,20 +102,20 @@ export const Chart = () => {
   return (
     <Card>
       <ul className="flex absolute top-2 right-2 z-40">
-        {(Object.keys(chartConfig) as Array<ChartSpan>).map(item => (
+        {(Object.keys(ms_per_period) as Array<ChartSpan>).map(item => (
           <li key={item}>
             <ChartFilter
               text={item}
-              active={filter === item}
+              active={span === item}
               onClick={() => {
-                setFilter(item);
+                setSpan(item);
               }}
             />
           </li>
         ))}
       </ul>
       <ResponsiveContainer>
-        <AreaChart data={status === "success" ? formatData(data) : []}>
+        <AreaChart data={status === "success" ? narrowPriceHistory(data, span) : []}>
           <defs>
             <linearGradient id="chartColor" x1="0" y1="0" x2="0" y2="1">
               <stop
@@ -153,7 +146,7 @@ export const Chart = () => {
             contentStyle={darkMode ? { backgroundColor: "#111827" } : undefined}
           />
           <Area
-            type={curveCardinal.tension(0.6)}
+            type={curveMonotoneX}
             dataKey="¥ price"
             stroke={yesColors.stroke}
             fill="url(#chartColor)"
@@ -161,14 +154,18 @@ export const Chart = () => {
             strokeWidth={0.5}
           />
           <Area
-            type={curveCardinal.tension(0.6)}
+            type={curveMonotoneX}
             dataKey="₦ price"
             stroke={noColors.stroke}
             fill="url(#chartColor2)"
             fillOpacity={1}
             strokeWidth={0.5}
           />
-          <XAxis dataKey="date"/>
+          <XAxis dataKey="date"
+            domain={[Date.now() - ms_per_period[span], Date.now()]}
+            type="number"
+            tickFormatter={formatUnixMilli}
+          />
           <YAxis domain={[0, 1]}/>
         </AreaChart>
       </ResponsiveContainer>

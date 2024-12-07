@@ -48,7 +48,7 @@ class PredictionMarket(db.Model):
     name: so.Mapped[str] = so.mapped_column(sa.String(256), nullable=False)
     description: so.Mapped[str] = so.mapped_column(sa.String(1025), nullable=False)
     created_at: so.Mapped[datetime.datetime] = so.mapped_column(
-        index=True, default=lambda: datetime.datetime.now(datetime.timezone.utc)
+        index=True, default=lambda: datetime.datetime.now()
     )
     resolved: so.Mapped[bool] = so.mapped_column(
         default=False, nullable=False
@@ -63,7 +63,7 @@ class MarketLiquidity(db.Model):
     yes_liquidity: so.Mapped[float] = so.mapped_column(sa.Float())
     no_liquidity: so.Mapped[float] = so.mapped_column(sa.Float())
     timestamp: so.Mapped[datetime.datetime] = so.mapped_column(
-        index=True, default=lambda: datetime.datetime.now(datetime.timezone.utc)
+        index=True, default=lambda: datetime.datetime.now()
     )
 
 @dataclass
@@ -77,7 +77,7 @@ class UserBalance(db.Model, Inspectable[so.Mapper[Any]]):
     no_balance: so.Mapped[float] = so.mapped_column(sa.Float())
     dog_balance: so.Mapped[float] = so.mapped_column(sa.Float())
     timestamp: so.Mapped[datetime.datetime] = so.mapped_column(
-        index=True, default=lambda: datetime.datetime.now(datetime.timezone.utc)
+        index=True, default=lambda: datetime.datetime.now()
     )
 
     def as_dict(self) -> dict[str, Any]:

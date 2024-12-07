@@ -25,7 +25,7 @@ export type StockDetails = {
 //   t: number
 // }
 
-export type ChartSpan = "1Y" | "1M" | "1W" | "1D"
+export type ChartSpan = "1Y" | "1M" | "1W" | "1D" | "1H"
 
 export type LiquidityHistory = Array<{
     yes_liquidity: number
