@@ -279,3 +279,29 @@ def list_markets():
             "description": market.description
         } for market in query.all()]
     }
+
+
+@market_blueprint.post("/<market_id>/cashout")
+@require_api_key
+def cashout(market_id: int):
+    user = g_user()
+
+    user_balance: UserBalance = UserBalance.query.filter(
+        UserBalance.user_id == user.id,
+        UserBalance.market_id == market_id
+    ).first_or_404()
+
+    market: PredictionMarket = PredictionMarket.query.filter(
+        PredictionMarket.id == market_id,
+        PredictionMarket.resolved == True
+    ).first_or_404()
+
+    dog_amount: float = user_balance.yes_balance if market.result == "yes" else user_balance.no_balance
+
+    user_balance.dog_balance = user_balance.dog_balance + dog_amount
+    db.session.commit()
+
+    return {
+        "status": "ok",
+        "data": None,
+    }

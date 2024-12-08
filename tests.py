@@ -3,7 +3,8 @@ import unittest
 import sqlalchemy
 import json
 from api import create_app, db
-from api.models import PredictionMarket, User, MarketLiquidity
+from api.models import PredictionMarket, User, MarketLiquidity, UserBalance
+from typing import cast
 from config import TestConfig
 
 class ServerTest(unittest.TestCase):
@@ -162,7 +163,7 @@ class TestMarket(ServerTest):
         self.assertEqual(liquidity.no_liquidity, n)
 
     def test_market_resolve(self):
-        _ = self._create_super_user()
+        user = self._create_super_user()
         response = self.client.post(
             "/market/1/resolve",
             data = json.dumps(
@@ -170,7 +171,7 @@ class TestMarket(ServerTest):
                     "result": "no"
                     }
             ),
-            headers={"x-api-key": "somerandomapistring"},
+            headers={"x-api-key": user.api_key},
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 200)
@@ -212,6 +213,53 @@ class TestMarket(ServerTest):
         # The order should be most recent market first
         self.assertEqual([3,2,1], [market["id"] for market in data])
 
+    def test_market_cashout(self):
+        user = self._create_super_user()
+        _ = self.client.post(
+            "/market/1/tx",
+            data = json.dumps(
+                {
+                    "kind": "buy[no]",
+                    "amount": "10",
+                    }
+                ),
+            headers={"x-api-key": user.api_key},
+            content_type="application/json",
+        )
+
+        balance_after_purchase: UserBalance = cast(
+            UserBalance,
+            UserBalance.query.filter(
+                UserBalance.user_id == user.id
+            ).first()
+        )
+        dog_after_purchase: float = balance_after_purchase.dog_balance
+        no_after_purchase: float = balance_after_purchase.no_balance
+
+        self.client.post(
+            "/market/1/resolve",
+            data = json.dumps(
+                {
+                    "result": "no"
+                    }
+            ),
+            headers={"x-api-key": user.api_key},
+            content_type="application/json",
+        )
+        response = self.client.post(
+            "/market/1/cashout",
+            headers={"x-api-key": user.api_key},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        dog_after_cashout: float = cast(
+            UserBalance, UserBalance.query.filter(
+                UserBalance.user_id == user.id
+            ).first()
+        ).dog_balance
+
+        self.assertEqual(dog_after_purchase + no_after_purchase, dog_after_cashout)
 
 class TestUser(ServerTest):
     def test_get_user(self):
