@@ -24,6 +24,7 @@ def upgrade():
     sa.Column('description', sa.String(length=1025), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column("resolved", sa.Boolean(), nullable=False),
+    sa.Column("result", sa.String(length=3), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('prediction_market', schema=None) as batch_op:

@@ -163,23 +163,24 @@ class TestMarket(ServerTest):
 
     def test_market_resolve(self):
         _ = self._create_super_user()
-        self.client.post(
-            "/market/create",
-            data=json.dumps(
+        response = self.client.post(
+            "/market/1/resolve",
+            data = json.dumps(
                 {
-                    "name": "Will the average grade in NumCS be above 5?",
-                    "description": "Resolves on DATE",
-                }
+                    "result": "no"
+                    }
             ),
             headers={"x-api-key": "somerandomapistring"},
             content_type="application/json",
         )
-        response = self.client.post(
-            "/market/1/resolve",
-            headers={"x-api-key": "somerandomapistring"},
-            content_type="application/json",
-        )
         self.assertEqual(response.status_code, 200)
+
+        market: PredictionMarket | None = PredictionMarket.query.filter(
+            PredictionMarket.id == 1
+        ).first()
+
+        self.assertIsNotNone(market)
+        self.assertEqual(market.result, "no")
 
         # After a market has been resolved, one cannot buy/sell anymore
         response = self.client.post(

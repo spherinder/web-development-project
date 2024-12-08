@@ -240,9 +240,14 @@ def do_transaction(market_id: int, body: TxReq):
 
     return {"status": "ok", "msg": "Purchased" if is_buy else "Sold", "data": None}
 
+
+class ResultReq(BaseModel):
+    result: Literal["yes", "no"]
+
 @market_blueprint.post("/<market_id>/resolve")
 @require_api_key
-def resolve(market_id: int):
+@validate()
+def resolve(market_id: int, body: ResultReq):
     user = g_user()
     if not user.is_superuser:
         return {
@@ -256,6 +261,7 @@ def resolve(market_id: int):
     ).first_or_404()
 
     market.resolved = True
+    market.result = body.result
     db.session.commit()
     return {"status": "ok", "msg": "Resolved market"}
 

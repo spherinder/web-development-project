@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import datetime
-from typing import Any, override
+from typing import Any, override, Literal
 import sqlalchemy as sa
 from sqlalchemy.inspection import Inspectable
 import sqlalchemy.orm as so
@@ -52,6 +52,10 @@ class PredictionMarket(db.Model):
     )
     resolved: so.Mapped[bool] = so.mapped_column(
         default=False, nullable=False
+    )
+    result: so.Mapped[Literal["yes", "no"]] = so.mapped_column(
+        # FIXME sqlite doesn't respect nullable=True, default to "yes" for now
+        sa.String(3), default="yes", nullable=True
     )
 
 @dataclass
