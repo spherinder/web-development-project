@@ -195,6 +195,22 @@ class TestMarket(ServerTest):
         )
         self.assertEqual(response.status_code, 404)
 
+    def test_market_list_markets(self):
+        # The default market already exists
+        for i in range(2,4):
+            market: PredictionMarket = PredictionMarket(
+                name=f"Dummy market name {i}",
+                description=f"Dummy maket description {i}"
+            )
+            db.session.add(market)
+        db.session.commit()
+
+        response = self.client.get("/market/list")
+        data = json.loads(response.data)["data"]
+        self.assertEqual(response.status_code, 200)
+        # The order should be most recent market first
+        self.assertEqual([3,2,1], [market["id"] for market in data])
+
 
 class TestUser(ServerTest):
     def test_get_user(self):

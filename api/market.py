@@ -3,6 +3,7 @@ from flask import Blueprint, request
 from flask_pydantic import validate # pyright: ignore[reportMissingTypeStubs, reportUnknownVariableType]
 from pydantic import BaseModel
 from sqlalchemy import and_, exists
+from sqlalchemy.orm.query import Query
 from extensions import db
 from api.models import (
     MarketLiquidity,
@@ -257,3 +258,18 @@ def resolve(market_id: int):
     market.resolved = True
     db.session.commit()
     return {"status": "ok", "msg": "Resolved market"}
+
+@market_blueprint.get("/list")
+def list_markets():
+    query: Query[PredictionMarket] = db.session.query(PredictionMarket).order_by(PredictionMarket.created_at.desc())
+
+    # TODO: Is this the best format?
+    return {
+        "status": "ok",
+        "msg": "List of market ids",
+        "data": [{
+            "id": market.id,
+            "name": market.name,
+            "description": market.description
+        } for market in query.all()]
+    }
