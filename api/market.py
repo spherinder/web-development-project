@@ -93,7 +93,7 @@ def purchase(is_yes: bool, dollar_amount: float, market: PredictionMarket, user:
     existing_tok_balance = cast(
         UserBalance | None,
         UserBalance.query.filter(
-            and_(UserBalance.user_id == user.id, MarketLiquidity.market_id == market.id)
+            and_(UserBalance.user_id == user.id, UserBalance.market_id == market.id)
         )
         .order_by(UserBalance.timestamp.desc())
         .first()

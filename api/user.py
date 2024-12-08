@@ -41,5 +41,5 @@ def get_user_balances():
     return {
         "status": "ok",
         "msg": "Data in the data field",
-        "data": [x.as_dict for x in results],
+        "data": [x.as_dict() for x in results],
     }
