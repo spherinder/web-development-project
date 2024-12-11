@@ -45,9 +45,6 @@ class LoginReq(BaseModel):
 @validate()
 def login(body: LoginReq):
     user = db.session.scalar(sa.select(User).where(User.username == body.username))
-    print("user ", user)
-    if user is not None:
-        print("check ", user.check_password(body.password))
     if user is None or not user.check_password(body.password):
         return {
             "status": "err",
