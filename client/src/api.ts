@@ -186,3 +186,25 @@ export const login = async (username: string, password: string) => {
     return apiToken
   }
 }
+
+export const cashout = async (apiToken: string, marketId: number) => {
+  const url = `${serverUrl}/market/${marketId}/cashout`;
+  console.log("cashing out");
+
+  const response = await fetch(url, {
+    mode: "cors",
+    credentials: 'include',
+
+    method: "POST",
+    headers: {
+      "x-api-key": apiToken,
+      "Content-type": "application/json; charset=UTF-8"
+    }
+  })
+
+  if (!response.ok) {
+    throw new Error(`Error when logging in: ${response.status}`);
+  }
+
+  return await response.json();
+}

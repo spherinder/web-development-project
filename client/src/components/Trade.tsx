@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ThemeContext, AuthContext, MarketContext } from "../App";
 import { Card } from "./Card";
 import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { login, transactionType, tokenType, doTransaction, dollarsPerYes, fetchMarketInfo } from "../api";
+import { login, transactionType, tokenType, doTransaction, dollarsPerYes, fetchMarketInfo, cashout } from "../api";
 import { capitalize } from "../utils";
 
 const initTransactionType = {
@@ -15,9 +15,29 @@ const initTransactionType = {
 export const TransactionContext = createContext(initTransactionType);
 
 export const Trade = () => {
+  const {market} = useContext(MarketContext)
   const [tradeAmount, setTradeAmount] = useState(0);
   const [tokenType, setTokenType] = useState<tokenType>("yes");
   const [transactionType, setTransactionType] = useState<transactionType>("buy");
+  const { status, data }= useQuery({
+    queryKey: ["resolved"],
+    queryFn: () =>fetchMarketInfo(market?.id ?? 1)
+  })
+
+  if (data?.resolved) {
+    return (
+      <div style={{
+        fontSize: "22px",
+        display: "flex",
+        flexDirection: "column",
+      }}>
+        <center>
+          Market has been resolved
+        </center>
+        <Cashout/>
+      </div>
+    )
+  }
 
   const updateSelectedButton = (newButton: tokenType) => {
     setTokenType(_ =>  newButton);
@@ -227,13 +247,13 @@ const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: n
     })
   });
 
-  const buttonStyle = {
-    width: "250px",
-    height: "50px",
-    // See https://stackoverflow.com/questions/43121661/typescript-type-inference-issue-with-string-literal
-    textAlign: "center" as const,
-    backgroundColor: "#2D9CDB",
-  };
+  // const buttonStyle = {
+  //   width: "250px",
+  //   height: "50px",
+  //   // See https://stackoverflow.com/questions/43121661/typescript-type-inference-issue-with-string-literal
+  //   textAlign: "center" as const,
+  //   backgroundColor: "#2D9CDB",
+  // };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -243,8 +263,7 @@ const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: n
   if (apiToken) {
     return (
       <center>
-        <button onClick={handleSubmit}
-          style={buttonStyle}>
+        <button className="transact-button" onClick={handleSubmit}>
           Execute Transaction
         </button>
       </center>
@@ -252,8 +271,7 @@ const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: n
   }
   return (
     <center>
-        <button onClick={() => navigate("/login")}
-          style={buttonStyle}>
+      <button className="auth-button" onClick={() => navigate("/login")}>
           Login
         </button>
       </center>
@@ -273,4 +291,45 @@ const executeTransaction = async (
   }
   return await doTransaction(kind, type, amount, apiToken, marketId);
 
+}
+
+const Cashout = () => {
+  const { apiToken } = useContext(AuthContext);
+  const { market } = useContext(MarketContext);
+
+  const queryClient = useQueryClient()
+  const navigate = useNavigate();
+  const mutation = useMutation({
+    mutationFn: (() => cashout( apiToken!, market?.id ?? 1 // FIXME
+    )),
+    onSuccess: (_ => {
+      console.log("cashout successful");
+      queryClient.invalidateQueries({ queryKey: ["liquidityHistory", market?.id ?? 1] });
+      queryClient.invalidateQueries({ queryKey: ["marketInfo"] });
+    })
+  });
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    mutation.mutate()
+  }
+  
+   if (apiToken) {
+    return (
+      <center>
+        <button className="resolve-button" onClick={handleSubmit}>
+
+          Cashout tokens
+        </button>
+      </center>
+    )
+  }
+  return (
+    <center>
+      <button className="auth-button" onClick={() => navigate("/login")}>
+          Login
+        </button>
+      </center>
+  )
+ 
 }
