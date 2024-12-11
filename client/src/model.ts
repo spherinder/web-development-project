@@ -42,4 +42,5 @@ export type MarketInfo = {
   yes_liquidity: number,
   no_liquidity: number,
   modified: string,
+  resolved: boolean,
 }

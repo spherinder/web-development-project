@@ -232,7 +232,8 @@ def get_latest_market_info(market_id: int) -> dict[str, Any]:
             "yes_liquidity": liquidity.yes_liquidity,
             "no_liquidity": liquidity.no_liquidity,
             "modified": liquidity.timestamp.isoformat(),
-        },
+            "resolved": market.resolved,
+        }
     }
 
 
