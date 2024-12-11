@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, g
 
 from extensions import db
 from api.api_key import g_user, require_api_key
@@ -14,6 +14,17 @@ user_blueprint = Blueprint("user_blueprint", __name__, url_prefix="/user")
 def get_user_details():
     user: User = g_user()
     return {"status": "ok", "msg": "", "data": user.as_dict_self()}
+
+
+@user_blueprint.get("/dog_balance")
+@require_api_key
+def get_dog_balance():
+    latest_balance = (
+        UserBalance.query.filter(UserBalance.user_id == g.user.id)
+        .order_by(UserBalance.timestamp.desc())
+        .first()
+    )
+    return {"status": "ok", "msg": "", "data": {"balance": latest_balance.dog_balance}}
 
 
 @user_blueprint.get("/balances")
@@ -34,6 +45,7 @@ def get_user_balances():
             (UserBalance.market_id == subquery.c.market_id)
             & (UserBalance.timestamp == subquery.c.latest),
         )
+        .filter(UserBalance.user_id == g.user.id)
         .order_by(UserBalance.market_id.desc())
     )
 

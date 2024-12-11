@@ -243,6 +243,13 @@ class TestMarket(ServerTest):
             balance_response["dog_balance"], balance_after_purchase.dog_balance
         )
 
+        response = self.client.get(
+            "/user/dog_balance", headers={"x-api-key": user.api_key}
+        )
+        self.assertEqual(
+            json.loads(response.data)["data"]["balance"], dog_after_purchase
+        )
+
         self.client.post(
             "/market/1/resolve",
             data=json.dumps({"result": "no"}),
