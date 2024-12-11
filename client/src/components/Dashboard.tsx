@@ -70,8 +70,8 @@ type OverviewProps = {
 const Overview = ({ marketName, price, change, changePercent, currency }: OverviewProps) => {
   return (
     <Card>
-      <span className="absolute left-4 top-4 text-neutral-400 text-lg xl:text-xl 2xl:text-2xl">
-        {marketName}
+      <span className="absolute left-4 top-4 text-primary-400 text-lg xl:text-xl 2xl:text-2xl">
+        Market: {marketName}
       </span>
       <div className="w-full h-full flex items-center justify-around">
         <span className="text-2xl xl:text-4xl 2xl:text-5xl flex items-center">
