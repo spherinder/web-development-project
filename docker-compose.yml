@@ -17,8 +17,8 @@ services:
     container_name: fullstack-reference-project_backend
     image: fullstack-reference-project_backend:latest
     build:
-      context: ./
-      dockerfile: ./Dockerfile
+      context: .
+      dockerfile: Dockerfile
       target: base
     volumes:
       - ./backend/http:/http
