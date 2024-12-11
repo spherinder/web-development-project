@@ -140,6 +140,9 @@ deploy:
   environment:
     url: https://$URL_FRONTEND
     name: $CI_PROJECT_NAME/$CI_COMMIT_REF_SLUG
+    kubernetes:
+      agent: course-fwe2024/students/final-project/fp-p34:agent-name
+
 
 
 ############################################
