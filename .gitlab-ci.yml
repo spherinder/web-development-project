@@ -49,7 +49,7 @@ build:kaniko:
   parallel:
     matrix:
       - APP_LAYER: frontend
-        CONTEXT: ./client
+        CONTEXT: ./client/
         ARCH:
           - amd64
           - arm64
@@ -73,7 +73,7 @@ build:kaniko:
     - >
       /kaniko/executor
       --context "${CONTEXT}"
-      --dockerfile "./Dockerfile"
+      --dockerfile "${CONTEXT}Dockerfile"
       --destination $IMG
       --no-push-cache
 
