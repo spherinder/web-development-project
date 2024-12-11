@@ -1,63 +1,9 @@
 import { useContext } from "react";
-import {MarketContext, ThemeContext} from "../App";
+import { MarketContext, ThemeContext } from "../App";
 import { Chart } from "./Chart";
-// import { fetchQuote, fetchStockDetails } from "../api";
 import { Header } from "./Header";
-// import { Quote, StockDetails } from "../model";
-// import { useQuery } from "@tanstack/react-query";
 import { Trade } from "./Trade";
 import { Card } from "./Card";
-
-// type DetailsList = {
-//   name: string,
-//   country: string,
-//   currency: string,
-//   exchange: string,
-//   ipo: string,
-//   marketCapitalization: string,
-//   finnhubIndustry: string,
-// }
-
-// const Details = ({ details }: {details: StockDetails | null}) => {
-//   const { darkMode } = useContext(ThemeContext);
-
-//   const detailsList: DetailsList = {
-//     name: "Name",
-//     country: "Country",
-//     currency: "Currency",
-//     exchange: "Exchange",
-//     ipo: "IPO Date",
-//     marketCapitalization: "Market Capitalization",
-//     finnhubIndustry: "Industry",
-//   };
-
-//   const convertMillionToBillion = (number: number) => {
-//     return (number / 1000).toFixed(2);
-//   };
-
-//   return (
-//     <Card>
-//       <ul
-//         className={`w-full h-full flex flex-col justify-between divide-y-1 ${
-//           darkMode ? "divide-gray-800" : null
-//         }`}
-//       >
-//         {details ? (Object.keys(detailsList) as Array<keyof DetailsList>).map(item => {
-//           return (
-//             <li key={item} className="flex-1 flex justify-between items-center">
-//               <span>{detailsList[item]}</span>
-//               <span className="font-bold">
-//                 {item === "marketCapitalization" && details
-//                   ? `${convertMillionToBillion(details[item])}B`
-//                   : details[item]}
-//               </span>
-//             </li>
-//           );
-//         }) : (<></>)}
-//       </ul>
-//     </Card>
-//   );
-// };
 
 type OverviewProps = {
   marketName: string,
@@ -81,9 +27,8 @@ const Overview = ({ marketName, price, change, changePercent, currency }: Overvi
           </span>
         </span>
         <span
-          className={`text-lg xl:text-xl 2xl:text-2xl ${
-            change > 0 ? "text-lime-500" : "text-red-500"
-          }`}
+          className={`text-lg xl:text-xl 2xl:text-2xl ${change > 0 ? "text-lime-500" : "text-red-500"
+            }`}
         >
           {change} <span>({changePercent}%)</span>
         </span>
@@ -96,21 +41,10 @@ export const Dashboard = () => {
   const { darkMode } = useContext(ThemeContext);
   const { market } = useContext(MarketContext)
 
-  // const {status: detailStatus, data: stockDetails} = useQuery({
-  //   queryKey: ["stockDetails", stockSymbol],
-  //   queryFn: () => fetchStockDetails(stockSymbol)
-  // })
-
-  // const {data: quote} = useQuery({
-  //   queryKey: ["fetchQuote", stockSymbol],
-  //   queryFn: () => fetchQuote(stockSymbol)
-  // })
-
   return (
     <div
-      className={`h-screen grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 grid-rows-8 md:grid-rows-7 xl:grid-rows-5 auto-rows-fr gap-6 p-10 font-quicksand ${
-        darkMode ? "bg-gray-900 text-gray-300" : "bg-neutral-100"
-      }`}
+      className={`h-screen grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 grid-rows-8 md:grid-rows-7 xl:grid-rows-5 auto-rows-fr gap-6 p-10 font-quicksand ${darkMode ? "bg-gray-900 text-gray-300" : "bg-neutral-100"
+        }`}
     >
       <div className="col-span-1 md:col-span-2 xl:col-span-3 row-span-1 flex justify-start items-center">
         {/*<Header name={stockDetails?.name ?? ""} />*/}
@@ -136,8 +70,8 @@ export const Dashboard = () => {
         />
       </div>
       <div className="row-span-2 xl:row-span-3">
-        <Trade/>
-        { /* // <Details details={detailStatus === "success" ? stockDetails : null} /> */ }
+        <Trade />
+        { /* // <Details details={detailStatus === "success" ? stockDetails : null} /> */}
       </div>
     </div>
   );
