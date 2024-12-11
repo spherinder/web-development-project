@@ -49,10 +49,12 @@ build:kaniko:
   parallel:
     matrix:
       - APP_LAYER: frontend
+        CONTEXT: ./client
         ARCH:
           - amd64
           - arm64
       - APP_LAYER: backend
+        CONTEXT: ./
         ARCH:
           - amd64
           - arm64
@@ -70,7 +72,7 @@ build:kaniko:
     # Build the image and push it to the registry.
     - >
       /kaniko/executor
-      --context "./${APP_LAYER}"
+      --context "${CONTEXT}"
       --dockerfile "./Dockerfile"
       --destination $IMG
       --no-push-cache
