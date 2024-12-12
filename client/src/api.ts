@@ -1,6 +1,6 @@
 import { LiquidityHistory, MarketInfo } from "./model";
 
-export const serverUrl = process.env.NODE_ENV === "production" ? `http://be.${window.location.hostname}` : "http://localhost:4000";
+export const serverUrl = process.env.NODE_ENV === "production" ? `https://be.${window.location.hostname}` : "http://localhost:4000";
 
 export const fetchLiquidityHistory = async (
   marketId: number
