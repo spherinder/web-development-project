@@ -14,4 +14,4 @@ EXPOSE 8080
 
 # TODO set ENV SQLALCHEMY_DATABASE_URI to location
 
-CMD ["./entrypoint.sh"]
+CMD ["sh", "./entrypoint.sh"]
