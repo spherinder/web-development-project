@@ -100,7 +100,7 @@ build:merge-manifests:
       --username="${CI_REGISTRY_USER}"
       --password="${CI_REGISTRY_PASSWORD}"
       push from-args
-      --platforms linux/amd64,linux/arm64
+      --platforms linux/amd64
       --template "${IMG}-ARCH"
       --target "${IMG}"
 
