@@ -1,6 +1,6 @@
 import { LiquidityHistory, MarketInfo } from "./model";
 
-export const serverUrl = "http://localhost:4000";
+export const serverUrl = process.env.NODE_ENV === "production" ? `http://be.${window.location.hostname}` : "http://localhost:4000";
 
 export const fetchLiquidityHistory = async (
   marketId: number
@@ -43,11 +43,11 @@ export const fetchMarketInfo = async (
  * = 1 + y/n
  */
 export const yesPerDollar = (y: number, n: number) => {
-  return 1 + y/n
+  return 1 + y / n
 }
 
 export const dollarsPerYes = (y: number, n: number) => {
-  return n/(y+n)
+  return n / (y + n)
 }
 
 // export const fetchStockDetails = async (stockSymbol: string): Promise<StockDetails> => {

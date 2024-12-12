@@ -52,12 +52,10 @@ build:kaniko:
         CONTEXT: ./client/
         ARCH:
           - amd64
-          - arm64
       - APP_LAYER: backend
         CONTEXT: ./
         ARCH:
           - amd64
-          - arm64
   tags:
     - runner-${ARCH}
   # Sometimes, Azure needs more time to scale the GitLab runner node pool up. Therefore, we set the timeout to 10 minutes.
