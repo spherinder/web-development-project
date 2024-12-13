@@ -1,3 +1,9 @@
+export type User = {
+  id: number,
+  email: string,
+  username: string
+}
+
 export type StockDetails = {
   country: string,
   currency: string,
@@ -13,17 +19,6 @@ export type StockDetails = {
   ticker: string,
   weburl: URL,
 }
-
-// export type Quote = {
-//   c: number,
-//   d: number,
-//   dp: number,
-//   h: number,
-//   l: number,
-//   o: number,
-//   pc: number,
-//   t: number
-// }
 
 export type ChartSpan = "1Y" | "1M" | "1W" | "1D" | "1H"
 
