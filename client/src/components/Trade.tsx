@@ -313,7 +313,7 @@ const Cashout = () => {
     event.preventDefault();
     mutation.mutate()
   }
-  
+
    if (apiToken) {
     return (
       <center>
@@ -331,5 +331,5 @@ const Cashout = () => {
         </button>
       </center>
   )
- 
+
 }

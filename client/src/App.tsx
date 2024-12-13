@@ -46,6 +46,11 @@ const App = () => {
     created_at: new Date().toISOString(),
   });
 
+  const oldApiToken = localStorage.getItem("api-token");
+  if (oldApiToken != apiToken) {
+    setApiToken(oldApiToken)
+  }
+
   return (
     <AuthContext.Provider value={{ apiToken, setApiToken }}>
       <ThemeContext.Provider value={{ darkMode, setDarkMode }}>

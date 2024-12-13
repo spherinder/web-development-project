@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import {ThemeContext, AuthContext} from "../App";
 import { login } from "../api";
@@ -13,6 +13,7 @@ export const Login = () => {
     mutationFn: (_ => login(username, password)),
     onSuccess: ((apiToken, _variables, _context) => {
       setApiToken(apiToken);
+      localStorage.setItem("api-token", apiToken)
       console.log(apiToken);
       navigate("/")}),
   });
@@ -59,7 +60,7 @@ export const Login = () => {
           </button>
         </form>
 
-        <p>Not registered?   
+        <p>Not registered?
           <a href="/register">
             Create an account
           </a>
