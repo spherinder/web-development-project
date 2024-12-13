@@ -142,6 +142,23 @@ const AuthButton = ({action} : {action: AuthAction}) => {
   )
 }
 
+const LogOutButton = () => {
+  const {setApiToken} = useContext(AuthContext)
+
+  const handleClick = () => {
+    localStorage.removeItem("api-token")
+    setApiToken(null)
+  }
+
+  return (
+    <button className="auth-button" onClick={handleClick}
+      style={{ width: "100px", margin: "10px" }}>
+      Log out
+    </button>
+
+  )
+}
+
 export const Header = ({ name }:{name:string}) => {
   const {apiToken} = useContext(AuthContext)
 
@@ -159,7 +176,9 @@ export const Header = ({ name }:{name:string}) => {
           <AuthButton action="register"/>
           <AuthButton action="login"/>
           </>
-        ) : <></>}
+        ) : <>
+              <LogOutButton/>
+            </>}
         <ThemeIcon />
       </div>
     </>
