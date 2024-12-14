@@ -1,6 +1,19 @@
-import { LiquidityHistory, MarketInfo, User } from "./model";
+import { LiquidityHistory, MarketInfo, User, UserBalance } from "./model";
 
 export const serverUrl = process.env.NODE_ENV === "production" ? `https://be.${window.location.hostname}` : "http://localhost:4000";
+
+export const fetchUserBalances = async (apiToken: string): Promise<Array<UserBalance>> => {
+  const response = await fetch(`${serverUrl}/user/balances`, {
+    headers: {
+      "x-api-key": apiToken,
+    }
+  });
+  const json = await response.json()
+  if (!response.ok) {
+    throw new Error(`Error when fetching currently logged in user: ${response.status}`);
+  }
+  return json.data
+}
 
 export const fetchUserData = async (apiToken: string): Promise<User> => {
   const response = await fetch(`${serverUrl}/user/`, {

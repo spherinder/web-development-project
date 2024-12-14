@@ -49,7 +49,7 @@ def get_user_balances():
         .order_by(UserBalance.market_id.desc())
     )
 
-    results = query.all()
+    results: List[UserBalance] = query.all()
     return {
         "status": "ok",
         "msg": "Data in the data field",

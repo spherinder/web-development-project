@@ -1,3 +1,13 @@
+export type UserBalance = {
+  id: number,
+  user_id: number,
+  market_id: number,
+  yes_balance: number,
+  no_balance: number,
+  dog_balance: number,
+  timestamp: string
+};
+
 export type User = {
   id: number,
   email: string,
