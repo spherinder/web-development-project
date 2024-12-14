@@ -1,5 +1,6 @@
 from typing import Any, Literal, cast
 from flask import Blueprint, request
+import flask
 from flask_pydantic import (
     validate,
 )  # pyright: ignore[reportMissingTypeStubs, reportUnknownVariableType]
@@ -17,6 +18,23 @@ from api.api_key import g_user, require_api_key
 import math
 
 market_blueprint: Blueprint = Blueprint("market", __name__, url_prefix="/market")
+
+
+@market_blueprint.route("/listen/<int:post_id>", methods=["GET"])
+def listen_for_market_updates(post_id):
+    """
+    Listen to updates from the given market.
+    """
+
+    def stream():
+        from extensions import announcer
+
+        messages = announcer.listen()
+        while True:
+            msg = messages.get()
+            yield msg
+
+    return flask.Response(stream(), mimetype="text/event-stream")
 
 
 @market_blueprint.post("/create")
@@ -233,7 +251,7 @@ def get_latest_market_info(market_id: int) -> dict[str, Any]:
             "no_liquidity": liquidity.no_liquidity,
             "modified": liquidity.timestamp.isoformat(),
             "resolved": market.resolved,
-        }
+        },
     }
 
 
@@ -266,13 +284,17 @@ class TxReq(BaseModel):
     kind: Literal["buy[yes]", "buy[no]", "sell[yes]", "sell[no]"]
 
 
+def market_of_id(market_id):
+    return PredictionMarket.query.filter(
+        PredictionMarket.id == market_id, PredictionMarket.resolved == False
+    ).first_or_404()
+
+
 @market_blueprint.post("/<market_id>/tx")
 @require_api_key
 @validate()
 def do_transaction(market_id: int, body: TxReq):
-    market: PredictionMarket = PredictionMarket.query.filter(
-        PredictionMarket.id == market_id, PredictionMarket.resolved == False
-    ).first_or_404()
+    market: PredictionMarket = market_of_id(market_id)
     user = g_user()
 
     is_yes = body.kind == "buy[yes]" or body.kind == "sell[yes]"
@@ -282,6 +304,13 @@ def do_transaction(market_id: int, body: TxReq):
         purchase(is_yes, body.amount, market, user)
     else:
         sell(is_yes, body.amount, market, user)
+
+    from extensions import announcer
+
+    # send the price data
+    # TODO: might want to attach a message/event type
+    market = market_of_id(market_id)
+    announcer.announce(market, market_id)
 
     return {"status": "ok", "msg": "Purchased" if is_buy else "Sold", "data": None}
 
@@ -333,17 +362,22 @@ def list_markets():
 @require_api_key
 def cashout(market_id: int):
     user = g_user()
-    user_balance: UserBalance = UserBalance.query.filter(
-        UserBalance.user_id == user.id,
-        UserBalance.market_id == market_id
-    ).order_by(UserBalance.timestamp.desc()).first_or_404()
+    user_balance: UserBalance = (
+        UserBalance.query.filter(
+            UserBalance.user_id == user.id, UserBalance.market_id == market_id
+        )
+        .order_by(UserBalance.timestamp.desc())
+        .first_or_404()
+    )
 
     market: PredictionMarket = PredictionMarket.query.filter(
         PredictionMarket.id == market_id, PredictionMarket.resolved == True
     ).first_or_404()
 
     # TODO: only allow cashing out once
-    dog_amount: float = user_balance.yes_balance if market.result == "yes" else user_balance.no_balance
+    dog_amount: float = (
+        user_balance.yes_balance if market.result == "yes" else user_balance.no_balance
+    )
 
     user_balance.dog_balance = user_balance.dog_balance + dog_amount
     db.session.commit()
