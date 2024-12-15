@@ -41,6 +41,6 @@ class MessageBroker:
         if market_id in self.listeners:
             for i in reversed(range(len(self.listeners[market_id]))):
                 try:
-                    self.listeners[i].put_nowait(formatted)
+                    self.listeners[market_id][i].put_nowait(formatted)
                 except queue.Full:
-                    del self.listeners[i]
+                    del self.listeners[market_id][i]

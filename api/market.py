@@ -20,8 +20,8 @@ import math
 market_blueprint: Blueprint = Blueprint("market", __name__, url_prefix="/market")
 
 
-@market_blueprint.route("/listen/<int:post_id>", methods=["GET"])
-def listen_for_market_updates(post_id):
+@market_blueprint.route("/listen/<int:market_id>", methods=["GET"])
+def listen_for_market_updates(market_id):
     """
     Listen to updates from the given market.
     """
@@ -29,7 +29,7 @@ def listen_for_market_updates(post_id):
     def stream():
         from extensions import announcer
 
-        messages = announcer.listen()
+        messages = announcer.listen(market_id)
         while True:
             msg = messages.get()
             yield msg
