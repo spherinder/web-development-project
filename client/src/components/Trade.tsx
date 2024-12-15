@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, createContext, PropsWithChildren, useContext, useState } from "react";
+import { Dispatch, SetStateAction, createContext, PropsWithChildren, useContext, useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 
 import { ThemeContext, AuthContext, MarketContext } from "../App";
@@ -246,6 +246,17 @@ const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: n
       queryClient.invalidateQueries({ queryKey: ["marketInfo"] });
     })
   });
+
+  useEffect(() => {
+    const evtSource = new EventSource(`http://localhost:4000/market/listen/${market?.id ?? 1}`);
+    evtSource.onmessage = (event) => {
+      if (event.data) {
+        console.log(event.data);
+        queryClient.invalidateQueries({ queryKey: ["liquidityHistory", market?.id ?? 1] });
+        queryClient.invalidateQueries({ queryKey: ["marketInfo"] });
+      }
+    };
+  }, []);
 
   // const buttonStyle = {
   //   width: "250px",
