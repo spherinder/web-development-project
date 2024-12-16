@@ -56,8 +56,9 @@ const formatUnixMilli = (ms:number) => new Date(ms).toLocaleString(undefined, {
 });
 
 const narrowPriceHistory = (data: LiquidityHistory, span: ChartSpan) => {
-  return data.slice(find(data, ({timestamp}) =>
-    new Date(timestamp).getTime() >= Date.now() - ms_per_period[span]
+  const timespanAgo = Date.now() - ms_per_period[span]
+  const res = data.slice(find(data, ({timestamp}) =>
+    new Date(timestamp).getTime() >= timespanAgo
   )).map(({yes_liquidity: y, no_liquidity: n, timestamp}) => {
       const price = dollarsPerYes(y,n);
       return {
@@ -66,6 +67,8 @@ const narrowPriceHistory = (data: LiquidityHistory, span: ChartSpan) => {
         date: new Date(timestamp).getTime(),
       };
   })
+  res.unshift({...res[0], date: timespanAgo})
+  return res
 };
 
 export const Chart = () => {
