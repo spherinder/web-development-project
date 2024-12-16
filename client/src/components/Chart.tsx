@@ -1,7 +1,7 @@
 import { MouseEventHandler, useContext, useState } from "react";
 import { MarketContext, ThemeContext } from "../App";
 import { Card } from "./Card";
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartSpan, LiquidityHistory } from "../model";
 import { curveMonotoneX } from "d3-shape"
 import { useQuery } from "@tanstack/react-query";
@@ -80,7 +80,7 @@ export const Chart = () => {
     }
   })
   const yesColors = darkMode ? {
-    stroke: "#ffeeff",
+    stroke: "#514ea1",
     tooltipText: "#b18ee1",
     areaStop: "#91aef1",
   } : {
@@ -90,7 +90,7 @@ export const Chart = () => {
   }
 
   const noColors = darkMode ? {
-    stroke: "#f1ea9e",
+    stroke: "#a1794e",
     tooltipText:  "#e1ca8e",
     areaStop: "#81592e",
   } : {
@@ -115,7 +115,7 @@ export const Chart = () => {
         ))}
       </ul>
       <ResponsiveContainer>
-        <AreaChart data={status === "success" ? narrowPriceHistory(data, span) : []}>
+        <LineChart data={status === "success" ? narrowPriceHistory(data, span) : []}>
           <defs>
             <linearGradient id="chartColor" x1="0" y1="0" x2="0" y2="1">
               <stop
@@ -145,21 +145,24 @@ export const Chart = () => {
           <Tooltip
             contentStyle={darkMode ? { backgroundColor: "#111827" } : undefined}
           />
-          <Area
+          <Line
             type={curveMonotoneX}
             dataKey="¥ price"
             stroke={yesColors.stroke}
             fill="url(#chartColor)"
             fillOpacity={1}
-            strokeWidth={0.5}
+            strokeWidth={6}
+            connectNulls
+            dot={false}
           />
-          <Area
+          <Line
             type={curveMonotoneX}
             dataKey="₦ price"
             stroke={noColors.stroke}
             fill="url(#chartColor2)"
             fillOpacity={1}
-            strokeWidth={0.5}
+            strokeWidth={6}
+            dot={false}
           />
           <XAxis dataKey="date"
             domain={[Date.now() - ms_per_period[span], Date.now()]}
@@ -167,7 +170,7 @@ export const Chart = () => {
             tickFormatter={formatUnixMilli}
           />
           <YAxis domain={[0, 1]}/>
-        </AreaChart>
+        </LineChart>
       </ResponsiveContainer>
     </Card>
   );
