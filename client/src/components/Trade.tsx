@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ThemeContext, AuthContext, MarketContext } from "../App";
 import { Card } from "./Card";
 import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { login, transactionType, tokenType, doTransaction, dollarsPerYes, fetchMarketInfo, cashout } from "../api";
+import { login, transactionType, tokenType, doTransaction, dollarsPerYes, fetchMarketInfo, cashout, serverUrl } from "../api";
 import { capitalize } from "../utils";
 
 const initTransactionType = {
@@ -248,7 +248,7 @@ const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: n
   });
 
   useEffect(() => {
-    const evtSource = new EventSource(`http://localhost:4000/market/listen/${market?.id ?? 1}`);
+    const evtSource = new EventSource(`${serverUrl}/market/listen/${market?.id ?? 1}`);
     evtSource.onmessage = (event) => {
       if (event.data) {
         console.log(event.data);
