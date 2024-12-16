@@ -1,4 +1,4 @@
-import { LiquidityHistory, MarketInfo, User, UserBalance } from "./model";
+import { LiquidityHistory, MarketInfo, User, UserBalance, MarketsList } from "./model";
 
 export const serverUrl = process.env.NODE_ENV === "production" ? `https://be.${window.location.hostname}` : "http://localhost:4000";
 
@@ -53,6 +53,17 @@ export const fetchMarketInfo = async (
   }
   return json.data
 }
+
+export const fetchMarketsList = async (): Promise<MarketsList> => {
+  const response = await fetch(`${serverUrl}/market/list`)
+  const json = await response.json()
+
+  if (!response.ok) {
+    throw new Error(`Error when fetching market info: ${response.status}`);
+  }
+  return json.data
+}
+
 
 /**
  * Say we want to purchase "yes" tokens:

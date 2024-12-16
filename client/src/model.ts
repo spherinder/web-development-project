@@ -49,3 +49,10 @@ export type MarketInfo = {
   modified: string,
   resolved: boolean,
 }
+
+export type MarketInfoShort = {
+  id: number,
+  name: string,
+  description: string,
+}
+export type MarketsList = Array<MarketInfoShort>

@@ -26,24 +26,24 @@ export const AuthContext = createContext(initAuth);
 type Market = {
   id: number,
   name: string,
-  desc: string,
-  created_at: string,
+  description: string,
+  // created_at: string,
 }
 
 const initMarket = {
   market: null as Market | null,
-  setMarketId: (() => { throw new Error("wont happen") }) as Dispatch<SetStateAction<Market | null>>
+  setMarket: (() => { throw new Error("wont happen") }) as Dispatch<SetStateAction<Market | null>>
 }
 export const MarketContext = createContext(initMarket);
 
 const App = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [apiToken, setApiToken] = useState<string | null>(null);
-  const [market, setMarketId] = useState<Market | null>({
+  const [market, setMarket] = useState<Market | null>({
     id: 1,
     name: "Default",
-    desc: "this is market",
-    created_at: new Date().toISOString(),
+    description: "this is market",
+    // created_at: new Date().toISOString(),
   });
 
   const oldApiToken = localStorage.getItem("api-token");
@@ -54,7 +54,7 @@ const App = () => {
   return (
     <AuthContext.Provider value={{ apiToken, setApiToken }}>
       <ThemeContext.Provider value={{ darkMode, setDarkMode }}>
-        <MarketContext.Provider value={{ market, setMarketId }}>
+        <MarketContext.Provider value={{ market, setMarket }}>
           <BrowserRouter>
             <div
               className={`h-screen grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 grid-rows-8 md:grid-rows-7 xl:grid-rows-5 auto-rows-fr gap-6 p-10 font-quicksand ${darkMode ? "bg-gray-900 text-gray-300" : "bg-neutral-100"
