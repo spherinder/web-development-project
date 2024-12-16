@@ -10,7 +10,7 @@ export const UserOverview = () => {
   const { apiToken } = useContext(AuthContext);
   const { setMarket } = useContext(MarketContext);
 
-  const navigate = useNavigate();  
+  const navigate = useNavigate();
 
   const { status: userStatus, error: _1, data: userData } = useQuery({
     queryKey: ["userData"],
@@ -36,6 +36,10 @@ export const UserOverview = () => {
 
   const marketDescription = (marketId: number): string => {
     return findMarket(marketId)!.description
+  }
+
+  if (!apiToken) {
+    navigate("/login");
   }
 
   if (userStatus === "pending" || balanceStatus === "pending" || marketsListStatus === "pending") {
