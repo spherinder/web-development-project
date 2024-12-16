@@ -57,20 +57,23 @@ const App = () => {
         <MarketContext.Provider value={{ market, setMarket }}>
           <BrowserRouter>
             <div
-              className={`h-screen grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 grid-rows-8 md:grid-rows-7 xl:grid-rows-5 auto-rows-fr gap-6 p-10 font-quicksand ${darkMode ? "bg-gray-900 text-gray-300" : "bg-neutral-100"
+              className={`h-screen ${darkMode ? "bg-gray-900 text-gray-300" : "bg-neutral-100"
                 }`}
             >
-              <div className="col-span-1 md:col-span-2 xl:col-span-3 row-span-1 flex justify-start items-center">
+              <div className="p-4 col-span-1 md:col-span-2 xl:col-span-3 row-span-1 flex justify-start items-center">
                 {/*<Header name={stockDetails?.name ?? ""} />*/}
                 <Header name={""} />
               </div>
-              <div className="col-span-12">
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/user" element={<UserOverview />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-              </Routes>
+              <div className="md:p-10 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 grid-rows-8 md:grid-rows-7 xl:grid-rows-5 auto-rows-fr gap-6 font-quicksand">
+                <div className="col-span-12">
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/user" element={<UserOverview />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                  </Routes>
+                </div>
+
               </div>
             </div>
           </BrowserRouter>

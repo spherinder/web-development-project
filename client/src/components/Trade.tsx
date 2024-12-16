@@ -6,6 +6,7 @@ import { Card } from "./Card";
 import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { login, transactionType, tokenType, doTransaction, dollarsPerYes, fetchMarketInfo, cashout, serverUrl } from "../api";
 import { capitalize } from "../utils";
+import { buttonClass, buttonClassNoBg } from "./tailwindClassNames";
 
 const initTransactionType = {
   transactionType: "buy" as transactionType,
@@ -150,12 +151,9 @@ const Button = ({type, selectedButton, onClick}: {
   const currentSelected = type === selectedButton();
   const buttonColor = type === "yes" ? "#27AE60" : "#E64800";
   return (
-    <button className="trade-button" onClick={() => onClick(type)}
+    <button className={buttonClassNoBg} onClick={() => onClick(type)}
       style={{
         backgroundColor: currentSelected ? buttonColor : "gray",
-        width: "200px",
-        height: "50px",
-
       }}>
       {capitalize(transactionType)} {type} for Ð{price.toFixed(2)}
     </button>
@@ -258,14 +256,6 @@ const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: n
     };
   }, []);
 
-  // const buttonStyle = {
-  //   width: "250px",
-  //   height: "50px",
-  //   // See https://stackoverflow.com/questions/43121661/typescript-type-inference-issue-with-string-literal
-  //   textAlign: "center" as const,
-  //   backgroundColor: "#2D9CDB",
-  // };
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     mutation.mutate()
@@ -274,7 +264,7 @@ const Execute = ({tokenType, tradeAmount}: {tokenType: tokenType, tradeAmount: n
   if (apiToken) {
     return (
       <center>
-        <button className="transact-button" onClick={handleSubmit}>
+        <button className={buttonClass} onClick={handleSubmit}>
           Execute Transaction
         </button>
       </center>
